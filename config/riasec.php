@@ -1,0 +1,68 @@
+<?php
+
+/*
+| Instrumen tes minat RIASEC ArahDiri, versi riasec-50-v1.
+| Butir dan skala diambil apa adanya dari ArahDiri v14 (QL, SCALE, QMAX).
+| Jangan mengubah teks butir tanpa menaikkan versi instrumen: hasil lama dihitung dari teks ini.
+*/
+
+return [
+    'version' => 'riasec-50-v1',
+    'scoring_version' => 'riasec-sum-norm-v1',
+    'lead' => 'Seberapa menarik aktivitas berikut bagimu?',
+    'scale' => [1 => 'Tidak Menarik', 2 => 'Kurang Menarik', 3 => 'Biasa-biasa saja', 4 => 'Menarik', 5 => 'Sangat Menarik'],
+    // Skor maksimum per dimensi = jumlah butir x 5.
+    'max' => ['R' => 40, 'I' => 40, 'A' => 40, 'S' => 40, 'E' => 40, 'C' => 50],
+    'items' => [
+        1 => ['R', 'Memperbaiki atau merakit peralatan mekanik (misalnya sepeda, komputer).'],
+        2 => ['R', 'Mengikuti proyek pertanian, berkebun, atau budidaya tanaman.'],
+        3 => ['R', 'Mengoperasikan atau memelihara mesin industri (misalnya forklift, generator).'],
+        4 => ['R', 'Mengerjakan tugas konstruksi ringan, seperti mengecat dinding atau memasang rak kayu.'],
+        5 => ['R', 'Menyusun dan memasang perabot atau dekorasi ruangan (misalnya rak buku, meja).'],
+        6 => ['R', 'Memperbaiki peralatan rumah tangga, misalnya kulkas, AC, atau televisi.'],
+        7 => ['R', 'Menyalakan dan merawat peralatan berbasis motor, seperti motor, genset, atau alat pemanen.'],
+        8 => ['R', 'Menyelesaikan proyek praktek laboratorium (misalnya eksperimen kimia sederhana, uji alat).'],
+        9 => ['I', 'Mengamati fenomena alam, mengambil sampel, dan mencatat hasil pengamatan lapangan.'],
+        10 => ['I', 'Membaca makalah atau jurnal ilmiah untuk memahami teori dasar.'],
+        11 => ['I', 'Melakukan analisis data kuantitatif menggunakan Excel atau aplikasi statistik.'],
+        12 => ['I', 'Merancang, merumuskan, dan menguji hipotesis dalam sebuah penelitian kecil.'],
+        13 => ['I', 'Mengikuti diskusi kelompok untuk memecahkan masalah ilmiah atau teknis.'],
+        14 => ['I', 'Meneliti informasi online untuk menemukan fakta dan sumber terpercaya.'],
+        15 => ['I', 'Menghitung kebutuhan bahan atau anggaran suatu proyek sederhana (misalnya proyek akhir tugas kuliah).'],
+        16 => ['I', 'Mempelajari program komputer baru, misalnya bahasa pemrograman atau perangkat lunak analitik.'],
+        17 => ['A', 'Menggambar sketsa, ilustrasi, atau doodle secara bebas sesuai imajinasi.'],
+        18 => ['A', 'Menulis cerita pendek, puisi, atau blog tentang pengalaman pribadi.'],
+        19 => ['A', 'Mendesain poster, brosur, atau materi visual untuk acara kampus atau komunitas.'],
+        20 => ['A', 'Membuat komposisi musik sederhana menggunakan aplikasi perekaman suara.'],
+        21 => ['A', 'Mengikuti kelas seni rupa, seperti melukis, menggambar, atau kerajinan tangan.'],
+        22 => ['A', 'Membuat storyboard atau sketsa konsep video pendek.'],
+        23 => ['A', 'Memodifikasi foto atau gambar menggunakan software grafis (misalnya Photoshop atau GIMP).'],
+        24 => ['A', 'Berpartisipasi dalam drama kecil atau peragaan panggung untuk acara sekolah/kampus.'],
+        25 => ['S', 'Mengajar teman sekelas atau adik kelas tentang topik yang Anda kuasai.'],
+        26 => ['S', 'Menjadi relawan di panti asuhan, panti jompo, atau kegiatan sosial lainnya.'],
+        27 => ['S', 'Bertemu dan berbincang dengan orang baru untuk membantu mereka mengatasi masalah pribadi.'],
+        28 => ['S', 'Memfasilitasi diskusi kelompok belajar atau forum diskusi dengan teman sekelas.'],
+        29 => ['S', 'Memberikan presentasi singkat saat menjadi mentor mahasiswa baru atau tutor.'],
+        30 => ['S', 'Membantu teman yang mengalami kesulitan akademik atau emosional dengan memberikan saran.'],
+        31 => ['S', 'Memberikan pelayanan di pusat bantuan pelanggan (customer service) dengan ramah dan sabar.'],
+        32 => ['S', 'Mengatur acara sosial kecil (misalnya reuni, workshop, atau seminar komunitas) agar berjalan lancar.'],
+        33 => ['E', 'Mengatur kampanye penjualan produk atau promosi jasa dalam kelompok organisasi.'],
+        34 => ['E', 'Memimpin rapat tim untuk merumuskan strategi pemasaran.'],
+        35 => ['E', 'Mengajak orang lain untuk membeli produk atau bergabung dalam seminar yang Anda selenggarakan.'],
+        36 => ['E', 'Mempresentasikan ide bisnis kepada calon investor atau dosen pembimbing proyek.'],
+        37 => ['E', 'Mengorganisir penjualan kecil-kecilan, misalnya menjual kue hasil buatan sendiri di kampus.'],
+        38 => ['E', 'Mengelola anggaran tim kegiatan (misalnya dana organisasi atau proyek kecil).'],
+        39 => ['E', 'Menjadi ketua panitia acara kampus dan membagi tugas kepada anggota tim.'],
+        40 => ['E', 'Membuat rencana bisnis sederhana untuk usaha kecil (misalnya warung makan, toko online).'],
+        41 => ['C', 'Menyusun jadwal harian dan mengarsipkan dokumen tugas secara sistematis.'],
+        42 => ['C', 'Mengelola spreadsheet berisi daftar inventaris, barang, atau nilai stok.'],
+        43 => ['C', 'Menyiapkan laporan keuangan sederhana, termasuk menghitung pendapatan dan pengeluaran.'],
+        44 => ['C', 'Mengorganisir dokumen penting (ijazah, sertifikat, resume) dalam folder atau binder.'],
+        45 => ['C', 'Menyusun folder digital rapi dengan penamaan file yang konsisten (misalnya CV_Anda.pdf, CoverLetter.pdf).'],
+        46 => ['C', 'Mengikuti prosedur baku saat mengerjakan tugas administratif, seperti input data mahasiswa atau pelanggan.'],
+        47 => ['C', 'Mencatat detail kontak (nama, jabatan, alamat email) dengan rapi dan akurat.'],
+        48 => ['C', 'Menggunakan aplikasi kantor (misalnya Word, Excel, PowerPoint) untuk membuat dokumen sesuai format yang diminta.'],
+        49 => ['C', 'Menyusun laporan rutin (misalnya ringkasan rapat, laporan harian) dengan bahasa yang jelas dan ringkas.'],
+        50 => ['C', 'Membantu tim menyiapkan berkas untuk audit atau pemeriksaan, memastikan semua dokumen lengkap dan terurut.'],
+    ],
+];

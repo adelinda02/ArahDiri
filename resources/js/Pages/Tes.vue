@@ -1,0 +1,136 @@
+<script setup>
+// Tes minat v14: panduan → pernyataan satu per satu (maju otomatis) → hasil.
+// Setiap jawaban dikirim ke server di latar belakang; jawaban lengkap dikirim ulang saat selesai.
+import { computed, onMounted, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import BackBar from '../Components/BackBar.vue';
+import Go from '../Components/Go.vue';
+import { postJson } from '../lib/http';
+import { toast } from '../lib/toast';
+
+const props = defineProps({
+    instrument: { type: Object, required: true }, // { lead, scale[5], items[50] }
+    session: { type: Object, default: null }, // { id, answers: {no: v}, current_item }
+    startNow: { type: Boolean, default: false },
+});
+
+const QN = props.instrument.items.length;
+const answers = reactive({});
+const answeredCount = computed(() => Object.keys(answers).length);
+const firstUnanswered = () => {
+    for (let n = 1; n <= QN; n++) if (!answers[n]) return n;
+    return QN;
+};
+
+const started = ref(false);
+const idx = ref(0);
+
+// Dipanggil saat halaman dibuka dan setiap kali sesi berganti (mis. setelah "Mulai dari Awal"),
+// karena Inertia bisa memakai ulang komponen yang sama.
+function init() {
+    Object.keys(answers).forEach((k) => delete answers[k]);
+    Object.entries(props.session?.answers ?? {}).forEach(([no, v]) => (answers[no] = v));
+    started.value = props.startNow && !!props.session;
+    idx.value = firstUnanswered() - 1;
+}
+init();
+watch(() => [props.session?.id, props.startNow], init);
+const finishing = ref(false);
+let failedSaves = 0;
+
+const q = computed(() => props.instrument.items[idx.value]);
+const cur = computed(() => answers[idx.value + 1] || 0);
+const pct = computed(() => Math.round(((idx.value + 1) / QN) * 100));
+
+function begin() {
+    // Sesi kosong yang sudah ada dipakai ulang; selain itu buat sesi baru.
+    if (props.session && answeredCount.value === 0) { started.value = true; idx.value = 0; return; }
+    router.post('/tes/mulai');
+}
+function resume() { idx.value = firstUnanswered() - 1; started.value = true; }
+function restart() { router.post('/tes/mulai'); }
+
+function answer(v) {
+    if (finishing.value || !props.session) return;
+    const no = idx.value + 1;
+    answers[no] = v;
+    postJson(`/tes/${props.session.id}/jawab`, { item_no: no, value: v }).catch(() => {
+        failedSaves++;
+        if (failedSaves === 1) toast('Koneksi tidak stabil. Jawabanmu tetap dikirim saat tes selesai.');
+    });
+
+    if (answeredCount.value >= QN) return finish();
+    idx.value = no >= QN ? firstUnanswered() - 1 : no;
+}
+function back() { if (idx.value > 0) idx.value--; }
+
+function finish() {
+    finishing.value = true;
+    router.post(`/tes/${props.session.id}/selesai`, { answers: { ...answers } }, {
+        onError: () => toast('Hasil belum tersimpan. Coba pilih jawaban terakhir sekali lagi.'),
+        onFinish: () => (finishing.value = false),
+    });
+}
+
+function onKey(e) {
+    if (!started.value || e.target.closest('input,textarea,select')) return;
+    if (e.key >= '1' && e.key <= '5') answer(Number(e.key));
+    else if (e.key === 'ArrowLeft') back();
+}
+onMounted(() => window.addEventListener('keydown', onKey));
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
+</script>
+
+<template>
+    <Head title="Tes Minat" />
+    <div class="wrap" style="padding-top:24px">
+        <BackBar />
+
+        <div v-if="!started" class="wrap" style="max-width:980px;padding-top:24px;padding-bottom:80px">
+            <div class="panduan-card ios-glass">
+                <div class="panduan-header">
+                    <Go href="/beranda" class="panduan-back-btn" title="Kembali ke Beranda">
+                        <span class="panduan-back-arrow">‹</span>
+                        <span class="panduan-header-title">Panduan Tes Minat Bakat</span>
+                    </Go>
+                </div>
+                <div class="panduan-grid">
+                    <div class="panduan-col">
+                        <div class="panduan-item"><div class="panduan-num">1</div><div class="panduan-content"><h4>Ikuti Intuisi Pertama</h4><p>Jawablah dengan spontan—seringkali intuisi pertamamu adalah yang paling sesuai dengan dirimu</p></div></div>
+                        <div class="panduan-item"><div class="panduan-num">2</div><div class="panduan-content"><h4>Kejujuran adalah Kunci</h4><p>Tidak ada jawaban yang benar atau salah. Jawablah dengan jujur sesuai kepribadianmu.</p></div></div>
+                    </div>
+                    <div class="panduan-col">
+                        <div class="panduan-item"><div class="panduan-num">3</div><div class="panduan-content"><h4>Atur Waktumu Sendiri</h4><p>Anda bebas menentukan ritme—tidak ada batasan waktu dalam mengerjakan tes ini.</p></div></div>
+                        <div class="panduan-item"><div class="panduan-num">4</div><div class="panduan-content"><h4>Komitmen Hingga Akhir</h4><p>Tes ini terdiri dari {{ QN }} pernyataan yang perlu diselesaikan. Jawabanmu tersimpan otomatis, jadi kalau berhenti di tengah kamu bisa melanjutkannya nanti.</p></div></div>
+                    </div>
+                </div>
+                <div class="panduan-actions">
+                    <template v-if="session && answeredCount > 0">
+                        <button type="button" class="btn btn-primary panduan-btn-mulai" @click="resume">Lanjutkan Tes (Pernyataan {{ firstUnanswered() }})</button>
+                        <button type="button" class="btn" @click="restart">Mulai dari Awal</button>
+                    </template>
+                    <button v-else type="button" class="btn btn-primary panduan-btn-mulai" @click="begin">Mulai Tes</button>
+                </div>
+            </div>
+        </div>
+
+        <div v-else class="wrap" style="max-width:780px;padding-top:20px;padding-bottom:80px">
+            <div class="quiz-card">
+                <div class="quiz-top-bar">
+                    <button v-if="idx > 0" class="quiz-back-btn" title="Kembali ke soal sebelumnya" @click="back">← Soal Sebelumnya</button>
+                    <span v-else class="quiz-back-placeholder"></span>
+                    <span class="quiz-step-badge">Pernyataan <b>{{ idx + 1 }}</b> dari {{ QN }}</span>
+                </div>
+                <div class="bar quiz-progress" role="progressbar" aria-valuemin="0" :aria-valuemax="QN" :aria-valuenow="idx + 1"><i :style="{ width: pct + '%' }"></i></div>
+                <p class="quiz-qlead" style="font-size:0.85rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;text-align:center">{{ instrument.lead }}</p>
+                <h3 :key="idx" class="quiz-qtext" style="font-size:clamp(1.15rem,2.5vw,1.45rem);line-height:1.45;margin-bottom:24px;text-align:center">“{{ q }}”</h3>
+                <div class="quiz-answers" role="group" aria-label="Pilihan jawaban">
+                    <button v-for="(label, k) in instrument.scale" :key="k" class="quiz-ans-btn" :aria-pressed="cur === k + 1 ? 'true' : 'false'" :disabled="finishing" @click="answer(k + 1)">
+                        <span class="quiz-ans-icon">{{ k + 1 }}</span>
+                        <span class="quiz-ans-label">{{ label }}</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

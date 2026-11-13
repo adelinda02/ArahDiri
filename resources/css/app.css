@@ -1,0 +1,13 @@
+/*
+ * ArahDiri v2 — gaya visual diambil apa adanya dari ArahDiri v14.
+ * Urutan cascade WAJIB sama dengan v14:
+ *   01 base (style blok <head>) → 02 editorial → 03 velvet → 04 starry → 05 overrides (style blok <body>)
+ * Jangan menyunting file di folder v14/; tambahkan penyesuaian v2 di v2.css.
+ */
+@import './v14/01-base.css';
+@import './v14/02-editorial.css';
+@import './v14/03-velvet.css';
+@import './v14/04-starry.css';
+@import './v14/05-overrides.css';
+@import './v2.css';
+@import './admin.css';

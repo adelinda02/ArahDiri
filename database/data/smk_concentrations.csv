@@ -1,0 +1,129 @@
+code,smk_program_code,name,duration
+1.1.1,1.1,Teknik Perawatan Gedung,3 tahun
+1.2.1,1.2,"Konstruksi Jalan, Irigasi, dan Jembatan",4 tahun
+1.2.2,1.2,Konstruksi Jalan dan Jembatan,3 tahun
+1.3.1,1.3,Teknik Konstruksi dan Perumahan,3 tahun
+1.3.2,1.3,Konstruksi Gedung dan Sanitasi,4 tahun
+1.4.1,1.4,Desain Pemodelan dan Informasi Bangunan,3 tahun
+1.5.1,1.5,Desain Interior dan Teknik Furnitur,4 tahun
+1.5.2,1.5,Desain dan Teknik Furnitur,3 tahun
+2.1.1,2.1,Teknik Pemesinan,3 tahun
+2.1.2,2.1,Teknik Mekanik Industri,3 tahun
+2.1.3,2.1,Teknik Pengecoran Logam,3 tahun
+2.1.4,2.1,Desain Gambar Mesin,3 tahun
+2.1.5,2.1,Teknik Pemesinan Pesawat Udara (Aircraft Machining),3 tahun
+2.1.6,2.1,Teknik Konstruksi Rangka Pesawat Udara (Airframe Mechanic),3 tahun
+2.1.7,2.1,Teknik Pemesinan Kapal,3 tahun
+2.2.1,2.2,Teknik Kendaraan Ringan,3 tahun
+2.2.2,2.2,Teknik Sepeda Motor,3 tahun
+2.2.3,2.2,Teknik Alat Berat,3 tahun
+2.2.4,2.2,Teknik Ototronik,3 tahun
+2.2.5,2.2,Teknik Bodi Kendaraan Ringan,3 tahun
+2.3.1,2.3,Teknik Pengelasan,3 tahun
+2.3.2,2.3,Teknik Pengelasan Kapal,3 tahun
+2.3.3,2.3,Teknik Konstruksi Badan Pesawat Udara (Aircraft Sheet Metal Forming),3 tahun
+2.3.4,2.3,Teknik Fabrikasi Logam dan Manufaktur,4 tahun
+2.4.1,2.4,Teknik Pengendalian Produksi,3 tahun
+2.4.2,2.4,Teknik Logistik,3 tahun
+2.5.1,2.5,Teknik Audio Video,3 tahun
+2.5.2,2.5,Teknik Mekatronika,3 tahun
+2.5.3,2.5,Teknik Elektronika Industri,3 tahun
+2.5.4,2.5,Teknik Otomasi Industri,3 tahun
+2.5.5,2.5,Teknik Elektronika Komunikasi,3 tahun
+2.5.6,2.5,Instrumentasi Medik,3 tahun
+2.5.7,2.5,Teknik Elektronika Pesawat Udara (Aviation Electronics),3 tahun
+2.5.8,2.5,Instrumentasi dan Otomatisasi Proses,4 tahun
+2.6.1,2.6,Airframe Powerplant,3 tahun
+2.6.2,2.6,Electrical Avionic,3 tahun
+2.7.1,2.7,Desain Rancang Bangun Kapal,3 tahun
+2.7.2,2.7,Konstruksi Kapal Baja,3 tahun
+2.7.3,2.7,Konstruksi Kapal Non Baja,3 tahun
+2.7.4,2.7,Interior Kapal,3 tahun
+2.8.1,2.8,Kimia Analisis,4 tahun
+2.8.2,2.8,Analisis Pengujian Laboratorium,3 tahun
+2.9.1,2.9,Teknik Kimia Industri,3 tahun
+2.9.2,2.9,Kimia Tekstil,3 tahun
+2.10.1,2.10,Teknik Pembuatan Serat Filamen,3 tahun
+2.10.2,2.10,Teknik Pembuatan Benang Stapel,3 tahun
+2.10.3,2.10,Teknik Pembuatan Kain,3 tahun
+2.10.4,2.10,Teknik Penyempurnaan Tekstil,3 tahun
+3.1.1,3.1,Teknik Instalasi Tenaga Listrik,3 tahun
+3.1.2,3.1,Teknik Pembangkit Tenaga Listrik,3 tahun
+3.1.3,3.1,Teknik Jaringan Tenaga Listrik,3 tahun
+3.1.4,3.1,"Teknik Pemanasan, Tata Udara, dan Pendinginan (Heating, Ventilation, and Air Conditioning)",3 tahun
+3.1.5,3.1,Teknik Kelistrikan Pesawat Udara (Aircraft Electricity),3 tahun
+3.1.6,3.1,Teknik Kelistrikan Kapal,3 tahun
+3.2.1,3.2,"Teknik Energi Surya, Hidro, dan Angin",3 tahun
+3.2.2,3.2,Teknik Energi Biomassa,3 tahun
+3.3.1,3.3,Teknik Geomatika,3 tahun
+3.3.2,3.3,Informasi Geospasial,4 tahun
+3.4.1,3.4,Geologi Pertambangan,4 tahun
+3.5.1,3.5,Teknik Produksi Minyak dan Gas,3 tahun
+3.5.2,3.5,Teknik Pemboran Minyak dan Gas,3 tahun
+3.5.3,3.5,"Teknik Pengolahan Minyak, Gas dan Petrokimia",3 tahun
+4.1.1,4.1,Rekayasa Perangkat Lunak,3 tahun
+4.1.2,4.1,Pengembangan Gim,3 tahun
+4.1.3,4.1,"Sistem Informasi, Jaringan, dan Aplikasi",4 tahun
+4.2.1,4.2,Teknik Komputer dan Jaringan,3 tahun
+4.2.2,4.2,Teknik Jaringan Akses Telekomunikasi,3 tahun
+4.2.3,4.2,Teknik Transmisi Telekomunikasi,3 tahun
+5.1.1,5.1,Layanan Penunjang Keperawatan dan Caregiving,3 tahun
+5.1.2,5.1,Layanan Penunjang Dental Care,3 tahun
+5.2.1,5.2,Layanan Penunjang Laboratorium Medik,3 tahun
+5.3.1,5.3,Layanan Penunjang Kefarmasian Klinis dan Komunitas,3 tahun
+5.3.2,5.3,Farmasi Industri,3 tahun
+5.4.1,5.4,Pekerjaan Sosial,3 tahun
+6.1.1,6.1,Agribisnis Tanaman Perkebunan,3 tahun
+6.1.2,6.1,Agribisnis Tanaman Pangan dan Hortikultura,3 tahun
+6.1.3,6.1,Agribisnis Perbenihan Tanaman,3 tahun
+6.1.4,6.1,Agribisnis Lanskap dan Pertamanan,3 tahun
+6.2.1,6.2,Agribisnis Ternak Ruminansia,3 tahun
+6.2.2,6.2,Agribisnis Ternak Unggas,3 tahun
+6.2.3,6.2,Kesehatan Hewan,3 tahun
+6.3.1,6.3,Agribisnis Ikan Hias,3 tahun
+6.3.2,6.3,Agribisnis Perikanan Payau dan Laut,3 tahun
+6.3.3,6.3,Agribisnis Perikanan Air Tawar,3 tahun
+6.3.4,6.3,Agribisnis Rumput Laut,3 tahun
+6.4.1,6.4,Usaha Pertanian Terpadu,3 tahun
+6.4.2,6.4,Mekanisasi Pertanian,3 tahun
+6.5.1,6.5,Agribisnis Pengolahan Hasil Pertanian,3 tahun
+6.5.2,6.5,Agribisnis Pengolahan Hasil Perikanan,3 tahun
+6.5.3,6.5,Pengawasan Mutu Hasil Pertanian,3 tahun
+6.6.1,6.6,Kehutanan,3 tahun
+7.1.1,7.1,Teknika Kapal Penangkap Ikan,3 tahun
+7.2.1,7.2,Nautika Kapal Penangkap Ikan,3 tahun
+7.3.1,7.3,Teknika Kapal Niaga,3 tahun
+7.4.1,7.4,Nautika Kapal Niaga,3 tahun
+8.1.1,8.1,Bisnis Digital,3 tahun
+8.1.2,8.1,Bisnis Retail,3 tahun
+8.2.1,8.2,Manajemen Perkantoran,3 tahun
+8.2.2,8.2,Manajemen Logistik,3 tahun
+8.3.1,8.3,Layanan Perbankan,3 tahun
+8.3.2,8.3,Layanan Perbankan Syariah,3 tahun
+8.3.3,8.3,Akuntansi,3 tahun
+9.1.1,9.1,Usaha Layanan Wisata,3 tahun
+9.1.2,9.1,Ekowisata,3 tahun
+9.2.1,9.2,Perhotelan,3 tahun
+9.3.1,9.3,Kuliner,3 tahun
+9.4.1,9.4,Tata Kecantikan Kulit dan Rambut,3 tahun
+9.4.2,9.4,Spa dan Beauty Therapy,3 tahun
+10.1.1,10.1,Seni Lukis,3 tahun
+10.1.2,10.1,Seni Patung,3 tahun
+10.2.1,10.2,Desain Komunikasi Visual,3 tahun
+10.2.2,10.2,Teknik Grafika,3 tahun
+10.3.1,10.3,Kriya Kreatif Batik dan Tekstil,3 tahun
+10.3.2,10.3,Kriya Kreatif Kulit dan Imitasi,3 tahun
+10.3.3,10.3,Kriya Kreatif Keramik,3 tahun
+10.3.4,10.3,Kriya Kreatif Logam dan Perhiasan,3 tahun
+10.3.5,10.3,Kriya Kreatif Kayu dan Rotan,3 tahun
+10.4.1,10.4,Seni Musik,3 tahun
+10.4.2,10.4,Seni Tari,3 tahun
+10.4.3,10.4,Seni Karawitan,3 tahun
+10.4.4,10.4,Seni Pedalangan,3 tahun
+10.4.5,10.4,Seni Teater,3 tahun
+10.4.6,10.4,Tata Artistik Teater,3 tahun
+10.5.1,10.5,Produksi dan Siaran Program Radio,3 tahun
+10.5.2,10.5,Produksi dan Siaran Program Televisi,3 tahun
+10.5.3,10.5,Produksi Film,3 tahun
+10.6.1,10.6,Animasi,3 tahun
+10.7.1,10.7,Desain dan Produksi Busana,3 tahun

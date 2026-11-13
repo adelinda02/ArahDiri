@@ -1,0 +1,51 @@
+code,name,field_code,field_name,riasec_r,riasec_i,riasec_a,riasec_s,riasec_e,riasec_c,holland_code,mapping_status
+1.1,Teknik Perawatan Gedung,1,Teknologi Konstruksi dan Bangunan,6.43,3.72,1.64,1.39,1.81,4.7,RCI,draft_ai
+1.2,Konstruksi dan Perawatan Bangunan Sipil,1,Teknologi Konstruksi dan Bangunan,5.55,4.86,2.6,1.75,2.7,5.2,RCI,draft_ai
+1.3,Teknik Konstruksi dan Perumahan,1,Teknologi Konstruksi dan Bangunan,5.75,3.62,1.88,1.88,3.06,4.87,RCI,draft_ai
+1.4,Desain Pemodelan dan Informasi Bangunan,1,Teknologi Konstruksi dan Bangunan,5.71,4.1,3.62,1.44,1.67,5.08,RCI,draft_ai
+1.5,Teknik Furnitur,1,Teknologi Konstruksi dan Bangunan,6.21,2.39,3.09,1.55,1.87,3.64,RCA,draft_ai
+2.1,Teknik Mesin,2,Teknologi Manufaktur dan Rekayasa,6.18,4.32,2.18,1.22,1.24,4.86,RCI,draft_ai
+2.2,Teknik Otomotif,2,Teknologi Manufaktur dan Rekayasa,6.96,3.57,1.13,1.36,1.33,4.18,RCI,draft_ai
+2.3,Teknik Pengelasan dan Fabrikasi Logam,2,Teknologi Manufaktur dan Rekayasa,7.0,2.27,1.52,1.05,1.38,3.74,RCI,draft_ai
+2.4,Teknik Logistik,2,Teknologi Manufaktur dan Rekayasa,3.29,2.38,1.06,1.92,4.84,5.85,CER,draft_ai
+2.5,Teknik Elektronika,2,Teknologi Manufaktur dan Rekayasa,6.56,4.42,1.5,1.54,1.31,4.92,RCI,draft_ai
+2.6,Teknik Pesawat Udara,2,Teknologi Manufaktur dan Rekayasa,6.72,4.08,1.03,1.28,1.64,4.73,RCI,draft_ai
+2.7,Teknik Konstruksi Kapal,2,Teknologi Manufaktur dan Rekayasa,6.81,2.67,1.29,1.36,2.19,4.03,RCI,draft_ai
+2.8,Kimia Analisis,2,Teknologi Manufaktur dan Rekayasa,5.54,5.01,1.34,1.43,1.21,5.29,RCI,draft_ai
+2.9,Teknik Kimia Industri,2,Teknologi Manufaktur dan Rekayasa,5.76,4.96,1.35,1.49,1.22,5.11,RCI,draft_ai
+2.10,Teknik Tekstil,2,Teknologi Manufaktur dan Rekayasa,6.67,1.68,1.38,1.05,1.43,4.28,RCI,draft_ai
+3.1,Teknik Ketenagalistrikan,3,Energi dan Pertambangan,6.82,3.31,1.3,1.44,1.61,4.29,RCI,draft_ai
+3.2,Teknik Energi Terbarukan,3,Energi dan Pertambangan,6.93,2.87,1.16,1.28,1.83,4.58,RCI,draft_ai
+3.3,Teknik Geospasial,3,Energi dan Pertambangan,5.36,4.45,2.17,1.32,1.31,5.67,CRI,draft_ai
+3.4,Teknik Geologi Pertambangan,3,Energi dan Pertambangan,5.85,4.66,1.23,1.38,1.12,5.08,RCI,draft_ai
+3.5,Teknik Perminyakan,3,Energi dan Pertambangan,6.09,4.11,1.17,1.34,1.47,4.83,RCI,draft_ai
+4.1,Pengembangan Perangkat Lunak dan Gim,4,Teknologi Informasi,3.56,5.5,2.39,2.07,2.08,5.6,CIR,draft_ai
+4.2,Teknik Jaringan Komputer dan Telekomunikasi,4,Teknologi Informasi,5.29,3.99,1.1,2.06,2.13,5.19,RCI,draft_ai
+5.1,Layanan Kesehatan,5,Kesehatan dan Pekerjaan Sosial,4.27,3.54,1.0,4.85,1.77,5.39,CSR,draft_ai
+5.2,Teknik Laboratorium Medik,5,Kesehatan dan Pekerjaan Sosial,5.75,5.58,1.04,3.08,1.3,5.09,RIC,draft_ai
+5.3,Teknologi Farmasi,5,Kesehatan dan Pekerjaan Sosial,4.64,2.91,1.01,2.92,2.28,6.53,CRS,draft_ai
+5.4,Pekerjaan Sosial,5,Kesehatan dan Pekerjaan Sosial,1.4,2.91,2.0,6.17,3.6,4.37,SCE,draft_ai
+6.1,Agribisnis Tanaman,6,Agribisnis dan Agriteknologi,6.87,3.94,1.08,1.57,2.1,4.01,RCI,draft_ai
+6.2,Agribisnis Ternak,6,Agribisnis dan Agriteknologi,6.78,3.65,1.23,2.31,1.77,3.6,RIC,draft_ai
+6.3,Agribisnis Perikanan,6,Agribisnis dan Agriteknologi,6.83,3.23,1.22,1.91,1.96,3.44,RCI,draft_ai
+6.4,Usaha Pertanian Terpadu,6,Agribisnis dan Agriteknologi,6.69,4.08,1.19,1.43,1.91,4.27,RCI,draft_ai
+6.5,Agriteknologi Pengolahan Hasil Pertanian,6,Agribisnis dan Agriteknologi,6.03,2.92,1.17,1.41,2.13,4.95,RCI,draft_ai
+6.6,Kehutanan,6,Agribisnis dan Agriteknologi,6.69,4.02,1.0,2.78,2.66,4.5,RCI,draft_ai
+7.1,Teknika Kapal Penangkap Ikan,7,Kemaritiman,6.81,2.89,1.02,1.27,2.44,4.03,RCI,draft_ai
+7.2,Nautika Kapal Penangkap Ikan,7,Kemaritiman,6.3,2.46,1.03,1.46,3.1,3.92,RCE,draft_ai
+7.3,Teknika Kapal Niaga,7,Kemaritiman,6.8,3.01,1.0,1.34,2.58,4.25,RCI,draft_ai
+7.4,Nautika Kapal Niaga,7,Kemaritiman,6.06,2.63,1.0,1.67,3.62,4.36,RCE,draft_ai
+8.1,Pemasaran,8,Bisnis dan Manajemen,2.45,1.85,1.74,2.89,6.01,5.11,ECS,draft_ai
+8.2,Manajemen Perkantoran dan Layanan Bisnis,8,Bisnis dan Manajemen,2.24,1.79,1.19,3.23,4.44,6.63,CES,draft_ai
+8.3,Akuntansi dan Keuangan Lembaga,8,Bisnis dan Manajemen,1.8,1.97,1.0,1.75,3.23,6.97,CEI,draft_ai
+9.1,Usaha Layanan Pariwisata,9,Pariwisata,3.22,2.74,3.25,5.03,3.98,3.54,SEC,draft_ai
+9.2,Perhotelan,9,Pariwisata,3.31,1.1,1.34,4.3,4.37,5.48,CES,draft_ai
+9.3,Kuliner,9,Pariwisata,5.18,1.52,3.23,3.18,3.72,3.97,RCE,draft_ai
+9.4,Kecantikan dan Spa,9,Pariwisata,5.4,2.06,2.96,4.2,3.06,3.46,RSC,draft_ai
+10.1,Seni Rupa,10,Seni dan Ekonomi Kreatif,4.31,2.56,6.67,2.22,2.25,2.44,ARI,draft_ai
+10.2,Desain Komunikasi Visual,10,Seni dan Ekonomi Kreatif,3.64,2.55,5.29,1.95,2.66,4.68,ACR,draft_ai
+10.3,Desain dan Produksi Kriya,10,Seni dan Ekonomi Kreatif,6.25,1.75,4.2,1.49,2.14,3.13,RAC,draft_ai
+10.4,Seni Pertunjukan,10,Seni dan Ekonomi Kreatif,3.21,1.64,6.67,3.62,3.49,1.96,ASE,draft_ai
+10.5,Broadcasting dan Perfilman,10,Seni dan Ekonomi Kreatif,4.55,2.25,4.54,1.92,2.49,4.07,RAC,draft_ai
+10.6,Animasi,10,Seni dan Ekonomi Kreatif,3.77,2.76,7.0,2.2,2.58,3.0,ARC,draft_ai
+10.7,Busana,10,Seni dan Ekonomi Kreatif,5.54,1.39,4.91,1.87,2.45,3.38,RAC,draft_ai
