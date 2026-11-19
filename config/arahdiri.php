@@ -26,6 +26,6 @@ return [
         // tidak dimunculkan otomatis karena ArahDiri tidak menanyakan agama pengguna.
         // Prodi ini tetap ada di katalog. Ubah ke false untuk menyertakannya.
         'exclude_religious' => env('ARAHDIRI_EXCLUDE_RELIGIOUS', true),
-        'religious_pattern' => '/islam|syari|tarbiy|dakwah|ushuluddin|qur|hadi(s|ts)|tafsir|aqidah|akidah|teologi|kristen|katolik|hindu|budd?ha|kh?onghucu|pastoral|kateket|misiolog|kependetaan|agama|zakat|wakaf|haji|falak|muamalah|ahwal|tasawuf|madz?hab|ulama|imam|spiritual|rohani|biblika|ustadz|penghulu|rohaniwan|pendeta|biarawa|madrasah|ibtidaiy|raudhatul|pesantren|dharma|gereja|siyasah|jinayah|ministri/i',
+        'religious_pattern' => '/islam|syari|tarbiy|dakwah|ushuluddin|qur|hadi(s|ts)|tafsir|aqidah|akidah|teologi|kristen|katolik|hindu|budd?ha|kh?onghucu|pastoral|kateket|misiolog|kependetaan|agama|zakat|wakaf|haji|falak|falaq|muamalah|ahwal|akhwal|tasawuf|madz?hab|mazhab|keilahian|kepanditaan|artha sastra|ayurweda|halal|kepercayaan terhadap tuhan|ulama|imam|spiritual|rohani|biblika|ustadz|penghulu|rohaniwan|pendeta|biarawa|madrasah|ibtidaiy|raudhatul|pesantren|dharma|gereja|siyasah|jinayah|ministri/i',
     ],
 ];

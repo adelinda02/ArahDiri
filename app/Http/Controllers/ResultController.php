@@ -9,6 +9,7 @@ use App\Services\Recommendation\CampusPicker;
 use App\Services\Recommendation\RecommendationEngine;
 use App\Services\Recommendation\RecommendationPresenter;
 use App\Support\Riasec;
+use App\Support\Settings;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -105,8 +106,15 @@ class ResultController extends Controller
     {
         $recs = $session->recommendations()->with('campusPick')->get();
         $pending = $recs->where('kind', 'program')->contains(fn ($r) => $r->campusPick?->status === 'pending_accreditation');
+        // Hasil lama yang masih memuat prodi/profesi khusus agama (dibuat sebelum daftar kata diperbarui).
+        // Hanya jenis yang memang disaring mesin, agar tidak dibuat ulang terus-menerus.
+        $religious = Settings::get('recommend.exclude_religious') && $recs->whereIn('kind', ['program', 'career_path'])->contains(function ($r) {
+            $names = array_merge([$r->reason['name'] ?? '', $r->reason['title'] ?? ''], array_column($r->reason['programs'] ?? [], 'name'));
 
-        if ($recs->isEmpty() || ($pending && $this->campuses->hasAccreditationData())) {
+            return (bool) preg_grep(config('arahdiri.recommend.religious_pattern'), array_filter($names));
+        });
+
+        if ($recs->isEmpty() || $religious || ($pending && $this->campuses->hasAccreditationData())) {
             try {
                 $this->engine->generate($session, $result);
             } catch (\Throwable $e) {

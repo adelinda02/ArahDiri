@@ -32,7 +32,12 @@ class BanptDirectory
             'Accept' => 'application/json, text/plain, */*',
             'Referer' => $page,
             'User-Agent' => 'ArahDiri/2 banpt:sync (sinkron mingguan, alat bimbingan karier)',
-        ])->timeout(180)->retry(2, 5000)->get($url);
+        ])
+            // Server BAN-PT kadang lambat menerima koneksi (>10 detik, batas bawaan Laravel)
+            // dan butuh ±30 detik untuk mengirim data. Beri waktu cukup dan coba ulang beberapa kali.
+            ->connectTimeout(60)->timeout(300)
+            ->retry(3, fn (int $attempt) => $attempt * 15000, throw: false)
+            ->get($url);
 
         if (! $res->successful()) {
             throw new RuntimeException("BAN-PT {$kind}: HTTP {$res->status()}");

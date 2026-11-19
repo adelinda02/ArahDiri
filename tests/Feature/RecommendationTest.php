@@ -197,6 +197,39 @@ class RecommendationTest extends TestCase
         $this->assertTrue($recs->every(fn ($r) => $r->campusPick->status === 'pending_accreditation' && $r->campusPick->campus_id === null));
     }
 
+    public function test_religious_spelling_variants_are_not_recommended(): void
+    {
+        $now = now();
+        $ias = ['riasec_r' => 2, 'riasec_i' => 7, 'riasec_a' => 6, 'riasec_s' => 5, 'riasec_e' => 2, 'riasec_c' => 1, 'holland_code' => 'IAS'];
+        $religious = ['Ilmu Falaq', 'Hukum Keluarga (Akhwal Syaksiyah)', 'Perbandingan Mazhab', 'Filsafat Keilahian'];
+        foreach ($religious as $i => $name) {
+            $f = DB::table('program_families')->insertGetId(['key' => "rel{$i}|S1", 'name' => $name, 'level' => 'S1', 'mapping_method' => 'aturan_spesifik', 'created_at' => $now, 'updated_at' => $now] + $ias);
+            DB::table('program_family_jobs')->insert(['program_family_id' => $f, 'kbji_code' => '2634.01', 'rank' => 2]);
+            // Lebih banyak kampus daripada Psikologi → tanpa saringan, prodi ini menang seri dan masuk 3 besar.
+            foreach (range(1, 6) as $k) {
+                $c = DB::table('campuses')->insertGetId(['pt_code' => "9{$i}{$k}", 'name' => "Kampus {$i}-{$k}", 'ownership' => 'Negeri', 'is_state' => true, 'created_at' => $now, 'updated_at' => $now]);
+                $o = DB::table('program_offerings')->insertGetId(['campus_id' => $c, 'program_family_id' => $f, 'program_code' => "9{$i}{$k}", 'original_name' => $name, 'level' => 'S1', 'created_at' => $now, 'updated_at' => $now]);
+                foreach ([['program_offering', $o], ['campus', $c]] as [$type, $id]) {
+                    DB::table('accreditations')->insert(['subject_type' => $type, 'subject_id' => $id, 'rating_raw' => 'Unggul', 'rating_score' => 7, 'expires_at' => '2030-01-01', 'fetched_at' => $now, 'created_at' => $now, 'updated_at' => $now]);
+                }
+            }
+        }
+
+        $names = $this->programs($this->run_('sma_smk'))->pluck('reason.name');
+        $this->assertCount(3, $names);
+        $this->assertEmpty(array_intersect($religious, $names->all()));
+    }
+
+    public function test_stale_result_with_religious_program_is_regenerated(): void
+    {
+        $s = $this->run_('sma_smk');
+        Recommendation::where('test_session_id', $s->id)->where('kind', 'program')->where('rank', 3)
+            ->update(['reason' => json_encode(['name' => 'Ilmu Falaq', 'level' => 'S1'])]);
+
+        $this->actingAs($s->user)->get('/hasil')->assertOk();
+        $this->assertNotContains('Ilmu Falaq', $this->programs($s)->pluck('reason.name')->all());
+    }
+
     public function test_result_page_renders_recommendations(): void
     {
         $s = $this->run_('sma_smk');
