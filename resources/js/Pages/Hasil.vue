@@ -16,7 +16,6 @@ import { toast } from '../lib/toast';
 const props = defineProps({
     result: { type: Object, default: null }, // { code, raw, norm, rank, max, level, completed_at }
     recs: { type: Object, default: null }, // rekomendasi per jenjang (RecommendationPresenter)
-    umbProgram: { type: Object, default: null },
     favorites: { type: Object, default: () => ({}) },
     answered: { type: Number, default: 0 },
     total: { type: Number, default: 50 },
@@ -38,12 +37,17 @@ function openTab(t, i = 0) {
     document.querySelector('.hasil-pills-bar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 const showChars = ref(false);
-// SMP tidak memilih kampus (rec-v2): tab Kampus hanya untuk SMA/SMK dan mahasiswa UMB.
-const tabs = computed(() => [['ringkasan', ' Ringkasan'], ['jurusan', ' Jurusan'], ['karir', ' Karier'], ...(props.recs?.level === 'smp' ? [] : [['kampus', ' Kampus']])]);
+// SMP dan mahasiswa tidak dipilihkan kampus: tab Kampus hanya untuk SMA/SMK.
+const tabs = computed(() => [['ringkasan', ' Ringkasan'], ['jurusan', props.recs?.level === 'mhs' ? ' Detail' : ' Jurusan'], ['karir', ' Karier'], ...(['smp', 'mhs'].includes(props.recs?.level) ? [] : [['kampus', ' Kampus']])]);
 const R = computed(() => props.result);
 const top3 = computed(() => R.value?.rank.slice(0, 3) ?? []);
 const pct = (t) => Math.round((R.value.norm[t] ?? 0) * 100);
 const subtitle = computed(() => top3.value.map((t) => `${KARTU[t].name} (${pct(t)}%)`).join(' · '));
+// Nama 3 dimensi dominan, dirangkai "A, B, dan C" untuk panel Hasil Utama.
+const domSentence = computed(() => {
+    const n = top3.value.map((t) => DIM[t].name);
+    return n.length <= 1 ? n.join('') : `${n.slice(0, -1).join(', ')}, dan ${n[n.length - 1]}`;
+});
 const arti = computed(() => (R.value ? artiKombinasi(R.value.code, top3.value) : ''));
 const completedAt = computed(() => R.value?.completed_at
     ? new Date(R.value.completed_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'
@@ -150,18 +154,21 @@ function scrollToRec() { document.querySelector('#rekomendasi-ringkas-sec')?.scr
                         <h2>Profil 6 Dimensi RIASEC</h2>
                         <p>Skor setiap dimensi berasal dari jawaban tesmu, dibandingkan dengan skor maksimal dimensi tersebut.</p>
                     </div>
-                    <span class="ad-code">Kode minat: <b>{{ R.code }}</b></span>
+                    <span class="ad-code"><svg class="ad-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.2 7.3L22 12l-7.8 2.7L12 22l-2.2-7.3L2 12l7.8-2.7z" /></svg>Kode minat: <b>{{ R.code }}</b></span>
                 </div>
                 <div class="ad-dimension-grid">
                     <article v-for="t in ORDER" :key="t" class="ad-dimension" :class="{ 'ad-top': top3.includes(t) }">
                         <div class="ad-dim-head">
-                            <div>
+                            <div class="ad-dim-head-left">
                                 <span class="ad-letter ad-dimension-icon" :title="t">
                                     <svg class="arah-line-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" v-html="ICON[t]"></svg>
                                 </span>
                                 <h3>{{ DIM[t].name }}</h3>
                             </div>
-                            <strong>{{ pct(t) }}%</strong>
+                            <div class="ad-dim-head-right">
+                                <span v-if="top3.includes(t)" class="ad-dom-badge"><svg class="ad-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.2 7.3L22 12l-7.8 2.7L12 22l-2.2-7.3L2 12l7.8-2.7z" /></svg>Dominan #{{ top3.indexOf(t) + 1 }}</span>
+                                <strong>{{ pct(t) }}%</strong>
+                            </div>
                         </div>
                         <div class="ad-dim-meta">
                             <span>{{ top3.includes(t) ? `Minat tertinggi #${top3.indexOf(t) + 1}` : DIM[t].alias }}</span>
@@ -170,6 +177,10 @@ function scrollToRec() { document.querySelector('#rekomendasi-ringkas-sec')?.scr
                         <div class="ad-meter" role="meter" :aria-label="DIM[t].name" aria-valuemin="0" aria-valuemax="100" :aria-valuenow="pct(t)"><i :style="{ width: pct(t) + '%' }"></i></div>
                         <p>{{ DIM[t].desc }}</p>
                     </article>
+                </div>
+                <div class="ad-hasil-utama">
+                    <span class="ad-hu-label"><svg class="ad-spark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.2 7.3L22 12l-7.8 2.7L12 22l-2.2-7.3L2 12l7.8-2.7z" /></svg>Hasil Utama</span>
+                    <p>Kode minat <b>{{ R.code }}</b> menunjukkan bahwa kamu paling dominan pada tipe <b>{{ domSentence }}</b>.</p>
                 </div>
                 <div class="hasil-two-cards-grid hasil-synergy-meta-grid">
                     <div class="pastel-card pastel-card-pros card-pros">
@@ -187,7 +198,7 @@ function scrollToRec() { document.querySelector('#rekomendasi-ringkas-sec')?.scr
                 </div>
             </section>
 
-            <RecSummary v-if="recs" :recs="recs" :code="R.code" :top3="top3" :umb-program="umbProgram" :favorites="favorites" @open="openTab" />
+            <RecSummary v-if="recs" :recs="recs" :code="R.code" :top3="top3" :norm="R.norm" :favorites="favorites" @open="openTab" />
         </template>
 
         <TabJurusan v-else-if="tab === 'jurusan' && recs" :recs="recs" :start="startIdx" />

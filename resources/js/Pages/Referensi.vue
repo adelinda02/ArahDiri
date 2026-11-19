@@ -25,7 +25,7 @@ const n = (x) => (x ?? 0).toLocaleString('id-ID');
                 <li><b>Keselarasan</b><br><span>Separuh dari kemiripan profil enam dimensi (kosinus) dan separuh dari kecocokan tiga minat teratas. Ini heuristik, bukan peluang diterima.</span></li>
                 <li><b>SMP</b><br><span>3 profesi yang paling cocok, lalu jalur mundurnya: arah SMA (dari mapel pendukung prodi pada SNBP) atau program keahlian SMK, kemudian prodi kuliah yang mengarah ke profesi itu.</span></li>
                 <li><b>SMA/SMK</b><br><span>3 prodi S1/D4/D3 dengan karier utama berbeda, masing-masing 1 kampus berbeda. Kampus dipilih dari akreditasi prodi, akreditasi kampus, PTN/PTKN lebih dulu, masa berlaku akreditasi, lalu nama.</span></li>
-                <li><b>Mahasiswa UMB</b><br><span>Peringkat prodimu di antara prodi UMB sejenjang, 3 prodi UMB paling selaras, dan karier dari prodimu sekarang.</span></li>
+                <li><b>Mahasiswa</b><br><span>Validasi jurusanmu sekarang (posisinya di antara prodi sejenjang: yakin, ragu, atau pertimbangkan pindah), 3 karier paling cocok, dan jalur pindah jurusan (prodi lebih cocok, diutamakan yang ada di kampusmu).</span></li>
                 <li><b>Prodi khusus agama</b><br><span>Tidak direkomendasikan otomatis karena ArahDiri tidak menanyakan agama, tetapi tetap ada di katalog.</span></li>
             </ul>
 

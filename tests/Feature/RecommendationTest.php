@@ -165,7 +165,7 @@ class RecommendationTest extends TestCase
         $this->assertSame([], $psikolog['smk']);
         $this->assertSame(['I', 'A', 'S'], $psikolog['because']);
         $this->assertNull($paths[0]->campusPick);
-        $this->assertSame('rec-v4', $paths[0]->engine_version);
+        $this->assertSame(RecommendationEngine::VERSION, $paths[0]->engine_version);
 
         // Halaman hasil dan PDF membawa dasar hukum mapel pendukung dan catatan SMK (Diktum KETIGA).
         $this->actingAs($s->user)->get('/hasil')->assertInertia(fn ($p) => $p->where('recs.snbp.source', 'Kepmendikdasmen 102/M/2025')
@@ -173,19 +173,102 @@ class RecommendationTest extends TestCase
         $this->get("/hasil/{$s->id}/cetak")->assertOk()->assertSee('Kepmendikdasmen 102/M/2025')->assertSee('Projek Kreatif dan Kewirausahaan')->assertDontSee('345/M/2022');
     }
 
-    public function test_umb_student_gets_evaluation_among_umb_programs_only(): void
+    private function runStudent(bool $feelsMismatch): TestSession
     {
-        $s = $this->run_('mhs_umb', function (User $u) {
+        // Mahasiswa Akuntansi UMB (profil prodi CER) dengan minat IAS.
+        return $this->run_('mhs', function (User $u) use ($feelsMismatch) {
             $aku = DB::table('program_offerings')->where('campus_id', $this->umbId)->where('original_name', 'Akuntansi')->value('id');
-            $u->profile->update(['umb_program_offering_id' => $aku, 'umb_self_declared' => true]);
+            $u->profile->update(['current_program_offering_id' => $aku, 'current_self_declared' => true, 'current_semester' => 3, 'feels_mismatch' => $feelsMismatch]);
         });
+    }
 
-        $eval = $this->programs($s, 'umb_eval')->first();
-        $this->assertSame(['position' => 3, 'total' => 3], ['position' => $eval->reason['position'], 'total' => $eval->reason['total']]);
-        $top = $this->programs($s, 'umb_program');
-        $this->assertSame(['Psikologi', 'Sistem Informasi', 'Akuntansi'], $top->pluck('reason.name')->all());
-        $this->assertTrue($top->every(fn ($r) => $r->campusPick->campus_id === $this->umbId));
-        $this->assertSame(1, $this->programs($s, 'career')->count()); // karier Akuntansi
+    public function test_student_who_feels_mismatched_gets_careers_first_then_programs_without_campus(): void
+    {
+        $s = $this->runStudent(true);
+
+        $eval = $this->programs($s, 'mhs_eval')->first();
+        $this->assertTrue($eval->reason['feels_mismatch']);
+        $this->assertSame('Universitas Mercu Buana', $eval->reason['campus']['name']);
+
+        // Karier dulu (kelompok jabatan berbeda), lalu jurusan yang mengarah ke karier itu.
+        $careers = $this->programs($s, 'career');
+        $this->assertSame(['Analis Sistem', 'Desainer Grafis', 'Psikolog Klinis'], $careers->pluck('reason.title')->all());
+        $this->assertEqualsCanonicalizing(['Teknik Informatika', 'Sistem Informasi'], array_column($careers[0]->reason['programs'], 'name'));
+        // Jurusan tidak dipakai dua kali, dan nama mirip (Psikologi Terapan) tidak ikut.
+        $this->assertSame(['Desain Komunikasi Visual'], array_column($careers[1]->reason['programs'], 'name'));
+        $this->assertSame(['Psikologi'], array_column($careers[2]->reason['programs'], 'name'));
+        $this->assertArrayHasKey('offerings_count', $careers[2]->reason['programs'][0]);
+
+        // Tanpa kampus dan tanpa saran pindah otomatis.
+        $this->assertSame(0, $this->programs($s, 'mhs_switch')->count());
+        $this->assertTrue($careers->every(fn ($r) => $r->campusPick === null));
+
+        $this->actingAs($s->user)->get('/hasil')->assertOk()->assertInertia(fn ($p) => $p->component('Hasil')
+            ->where('recs.current.feels_mismatch', true)->has('recs.careers', 3)->has('recs.switch_programs', 0));
+        $this->get("/hasil/{$s->id}/cetak")->assertOk()->assertSee('Jurusan yang sejalan');
+    }
+
+    public function test_student_happy_with_program_gets_professions_from_current_program_only(): void
+    {
+        $s = $this->runStudent(false);
+
+        $careers = $this->programs($s, 'career');
+        // Satu-satunya jabatan yang terhubung dengan Akuntansi di data uji.
+        $this->assertSame(['Akuntan'], $careers->pluck('reason.title')->all());
+        $this->assertTrue($careers[0]->reason['programs'][0]['is_current']);
+        $this->assertSame(0, $this->programs($s, 'mhs_switch')->count());
+    }
+
+    public function test_changing_the_mismatch_answer_rebuilds_the_result(): void
+    {
+        $s = $this->runStudent(false);
+        $s->user->profile->update(['feels_mismatch' => true]);
+
+        $this->actingAs($s->user)->get('/hasil')->assertOk();
+        $this->assertSame('Analis Sistem', $this->programs($s, 'career')->first()->reason['title']);
+    }
+
+    public function test_program_details_include_reasons_careers_and_other_campuses(): void
+    {
+        $p = $this->programs($this->run_('sma_smk'))->first();
+
+        $this->assertSame('Psikologi', $p->reason['name']);
+        $this->assertNotEmpty($p->reason['because']);
+        $this->assertArrayHasKey('subjects', $p->reason);
+        $this->assertSame(['code', 'title', 'description', 'holland', 'zone_min', 'zone_max', 'score'], array_keys($p->reason['careers'][0]));
+        // Kampus utama PTN A; kampus lain yang juga membuka Psikologi tetap ditampilkan.
+        $this->assertSame(['Universitas Swasta C', 'Universitas Mercu Buana', 'Universitas Swasta B'], array_column($p->reason['alt_campuses'], 'name'));
+        $this->assertSame('Unggul', $p->reason['alt_campuses'][0]['program_rating']);
+    }
+
+    public function test_similar_program_names_are_not_recommended_together(): void
+    {
+        $now = now();
+        $ias = ['riasec_r' => 2, 'riasec_i' => 7, 'riasec_a' => 6, 'riasec_s' => 5, 'riasec_e' => 2, 'riasec_c' => 1, 'holland_code' => 'IAS'];
+        DB::table('kbji_jobs')->insert(['code' => '2635.01', 'title' => 'Konselor', 'official_title' => 'Konselor', 'subgroup_code' => '2635', 'major_group' => '2', 'mapping_status' => 'draft_ai', 'created_at' => $now, 'updated_at' => $now] + $ias);
+        // "Psikologi Industri": karier utama berbeda dan kampus terbanyak → tanpa saringan nama, masuk bersama Psikologi.
+        $f = DB::table('program_families')->insertGetId(['key' => 'psikologi industri|S1', 'name' => 'Psikologi Industri', 'level' => 'S1', 'mapping_method' => 'aturan_spesifik', 'created_at' => $now, 'updated_at' => $now] + $ias);
+        DB::table('program_family_jobs')->insert(['program_family_id' => $f, 'kbji_code' => '2635.01', 'rank' => 1]);
+        foreach (range(1, 6) as $k) {
+            $c = DB::table('campuses')->insertGetId(['pt_code' => "77{$k}", 'name' => "Kampus Uji {$k}", 'ownership' => 'Swasta', 'created_at' => $now, 'updated_at' => $now]);
+            $o = DB::table('program_offerings')->insertGetId(['campus_id' => $c, 'program_family_id' => $f, 'program_code' => "77{$k}", 'original_name' => 'Psikologi Industri', 'level' => 'S1', 'created_at' => $now, 'updated_at' => $now]);
+            foreach ([['program_offering', $o], ['campus', $c]] as [$type, $id]) {
+                DB::table('accreditations')->insert(['subject_type' => $type, 'subject_id' => $id, 'rating_raw' => 'Baik', 'rating_score' => 4, 'expires_at' => '2030-01-01', 'fetched_at' => $now, 'created_at' => $now, 'updated_at' => $now]);
+            }
+        }
+
+        $names = $this->programs($this->run_('sma_smk'))->pluck('reason.name')->all();
+        $this->assertSame('Psikologi Industri', $names[0]);
+        $this->assertNotContains('Psikologi', $names);
+    }
+
+    public function test_results_from_older_engine_are_rebuilt(): void
+    {
+        $s = $this->run_('sma_smk');
+        Recommendation::where('test_session_id', $s->id)->update(['engine_version' => 'rec-v4']);
+
+        $this->actingAs($s->user)->get('/hasil')->assertOk();
+        $this->assertSame([RecommendationEngine::VERSION], Recommendation::where('test_session_id', $s->id)->distinct()->pluck('engine_version')->all());
     }
 
     public function test_without_accreditation_data_results_are_still_saved(): void
@@ -194,7 +277,9 @@ class RecommendationTest extends TestCase
         $recs = $this->programs($this->run_('sma_smk'));
 
         $this->assertCount(3, $recs);
-        $this->assertTrue($recs->every(fn ($r) => $r->campusPick->status === 'pending_accreditation' && $r->campusPick->campus_id === null));
+        // Kampus tetap dipilih dari katalog PDDikti (PTN dulu), ditandai belum diverifikasi.
+        $this->assertTrue($recs->every(fn ($r) => $r->campusPick->status === 'pending_accreditation' && $r->campusPick->campus_id !== null));
+        $this->assertSame('Universitas Negeri A', $recs[0]->campusPick->campus->name);
     }
 
     public function test_religious_spelling_variants_are_not_recommended(): void

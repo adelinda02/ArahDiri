@@ -14,7 +14,7 @@ class User extends Authenticatable
 
     public const LEVEL_SMP = 'smp';
     public const LEVEL_SMA_SMK = 'sma_smk';
-    public const LEVEL_MHS_UMB = 'mhs_umb';
+    public const LEVEL_MHS = 'mhs';
 
     protected $fillable = ['name', 'username', 'email', 'phone', 'password', 'level'];
 
@@ -68,14 +68,14 @@ class User extends Authenticatable
         return in_array($this->role, ['editor', 'admin', 'owner'], true);
     }
 
-    public function isUmbStudent(): bool
+    public function isCollegeStudent(): bool
     {
-        return $this->level === self::LEVEL_MHS_UMB;
+        return $this->level === self::LEVEL_MHS;
     }
 
-    public function needsUmbOnboarding(): bool
+    public function needsProgramOnboarding(): bool
     {
-        return $this->isUmbStudent() && ! $this->profile?->umb_program_offering_id;
+        return $this->isCollegeStudent() && (! $this->profile?->current_program_offering_id || $this->profile->feels_mismatch === null);
     }
 
     /** Hasil tes terakhir yang sudah selesai, atau null. */

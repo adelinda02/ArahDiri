@@ -16,7 +16,7 @@ final class DevTargets
         $low2 = array_slice($rank, -2);
         $s = $norm['S'] ?? 0.5;
         $e = $norm['E'] ?? 0.5;
-        $j = match ($level) { 'smp' => 'smp', 'mhs_umb' => 'mhs', default => 'sma' };
+        $j = match ($level) { 'smp' => 'smp', 'mhs' => 'mhs', default => 'sma' };
         $t = [];
         $add = function ($id, $cat, $text, $hint) use (&$t) {
             $t[] = ['id' => $id, 'cat' => $cat, 'text' => $text, 'hint' => $hint];

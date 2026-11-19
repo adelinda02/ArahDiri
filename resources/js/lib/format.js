@@ -33,3 +33,35 @@ export function ownershipLabel(c) {
     if (c.ownership === 'Negeri (Kedinasan)') return 'Kedinasan';
     return 'PTS';
 }
+
+/** Persentase keselarasan → label awam dan warna. */
+export function fitLabel(score) {
+    const p = pct(score);
+    if (p >= 90) return { pct: p, label: 'Sangat cocok', tone: 'high' };
+    if (p >= 75) return { pct: p, label: 'Cocok', tone: 'good' };
+    if (p >= 60) return { pct: p, label: 'Cukup cocok', tone: 'mid' };
+    return { pct: p, label: 'Kurang cocok', tone: 'low' };
+}
+
+// Tingkat persiapan pekerjaan (Job Zone O*NET 1–5) dalam istilah pendidikan Indonesia.
+const ZONE = {
+    1: 'Bisa dimulai tanpa pendidikan khusus',
+    2: 'Umumnya lulusan SMA/SMK',
+    3: 'Umumnya lulusan D3 atau pelatihan vokasi',
+    4: 'Umumnya lulusan S1/D4',
+    5: 'Umumnya butuh S2/S3 atau pendidikan profesi',
+};
+export function zoneText(min, max) {
+    if (!min && !max) return null;
+    return ZONE[max || min] ?? null;
+}
+
+/** Bentuk singkat kampus: "PTN · Kota Bandung". */
+export function campusShort(c) {
+    return [ownershipLabel(c), c?.city].filter(Boolean).join(' · ');
+}
+
+export const siteUrl = (w) => (w ? (w.startsWith('http') ? w : 'https://' + w) : null);
+
+/** Lencana netral (tanpa penilaian cocok/kurang cocok), mis. untuk profesi dari jurusan yang sudah dipilih pengguna. */
+export const neutralFit = (score) => ({ pct: pct(score), label: 'Kecocokan minat', tone: 'good' });

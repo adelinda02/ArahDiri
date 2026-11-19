@@ -126,7 +126,7 @@
                     Akreditasi prodi: {{ $acc($p['campus']['program_accreditation']) }}<br>
                     Akreditasi kampus: {{ $acc($p['campus']['campus_accreditation']) }}</small>
                 @else
-                    <small>Kampus menunggu data akreditasi BAN-PT.</small>
+                    <small>Belum ada kampus yang memenuhi syarat.</small>
                 @endif
             </div>
         @endforeach
@@ -141,20 +141,24 @@
         <p class="note">Informasi ini tidak mengubah urutan rekomendasi di atas.</p>
     @endif
 
-    @if ($recs['level'] === 'mhs_umb' && $recs['umb_eval'])
-        @php $e = $recs['umb_eval']; @endphp
-        <h2>Evaluasi prodi di UMB</h2>
-        <p>{{ $e['name'] }} ({{ $e['level'] }}): peringkat <b>{{ $e['position'] ?? '-' }} dari {{ $e['total'] }}</b> prodi {{ $e['level'] }} UMB untuk profil {{ $result['code'] }}. Ini gambaran kecocokan minat, bukan vonis salah jurusan.</p>
-        <h2>3 prodi UMB paling selaras</h2>
-        @foreach ($recs['umb_programs'] as $p)
-            <div class="card"><h3>#{{ $p['rank'] }} {{ $p['name'] }} ({{ $p['level'] }}) · {{ $pct($p['score']) }}% @if ($p['is_current']) <span class="pill">prodimu</span> @endif</h3>
-                <small>Akreditasi: {{ $acc($p['campus']['program_accreditation']) }}</small></div>
-        @endforeach
-        @if (count($recs['umb_s1_path']))
-            <p class="note">Jalur lanjutan S1 UMB: {{ implode(', ', array_column($recs['umb_s1_path'], 'name')) }}.</p>
+    @if ($recs['level'] === 'mhs' && $recs['current'])
+        @php $e = $recs['current']; $ya = ! empty($e['feels_mismatch']); @endphp
+        <h2>Jurusanmu sekarang</h2>
+        <p><b>{{ $e['name'] }} ({{ $e['level'] }})</b> di {{ $e['campus']['name'] ?? '-' }}. Merasa salah jurusan: <b>{{ $ya ? 'Iya' : 'Tidak' }}</b>.</p>
+        @if (count($recs['careers']))
+            <h2>{{ $ya ? 'Karier yang paling cocok dan jurusan yang sejalan' : 'Profesi dari jurusanmu yang paling cocok' }}</h2>
+            @foreach ($recs['careers'] as $c)
+                <div class="card"><h3>#{{ $c['rank'] }} {{ $c['title'] }} · {{ $pct($c['score']) }}%</h3>
+                    <small>{{ $c['description'] ?? '' }}</small>
+                    @if ($ya && count($c['programs'] ?? []))
+                        <br><small><b>Jurusan yang sejalan:</b> {{ implode('; ', array_map(fn ($p) => $p['name'].' ('.$p['level'].', dibuka di '.($p['offerings_count'] ?? 0).' kampus)', $c['programs'])) }}</small>
+                    @endif
+                </div>
+            @endforeach
+            @if ($ya)
+                <p class="note">Diskusikan pilihan ini dengan dosen pembimbing akademik. Kalau mantap pindah, tanyakan prosedur, syarat IPK, batas semester, biaya, dan konversi SKS ke bagian akademik atau kampus tujuan.</p>
+            @endif
         @endif
-        <h2>Bertahan sambil belok arah</h2>
-        <p>Karier dari {{ $e['name'] }} yang tetap cocok: {{ implode(', ', array_column($recs['careers'], 'title')) ?: '-' }}. Diskusikan hasil ini dengan dosen pembimbing akademik; aturan pindah prodi mengikuti ketentuan kampus.</p>
     @endif
 
     <footer>

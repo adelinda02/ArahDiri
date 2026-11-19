@@ -16,7 +16,7 @@ class RecommendationPresenter
 
     public function present(TestSession $session): array
     {
-        $recs = $session->recommendations()->with('campusPick')->get()->groupBy('kind');
+        $recs = $session->recommendations()->with('campusPick')->orderBy('rank')->get()->groupBy('kind');
         $campusIds = $recs->collapse()->pluck('campusPick.campus_id')->filter()->unique();
         $campuses = DB::table('campuses')->whereIn('id', $campusIds)->get()->keyBy('id');
         $fetched = $recs->collapse()->pluck('campusPick.accreditation_fetched_at')->filter()->max();
@@ -30,9 +30,10 @@ class RecommendationPresenter
             'careers' => $this->simple($recs->get('career')),
             // SMP rec-v3+: jalur per profesi (profesi → SMA/SMK → prodi).
             'career_paths' => $this->simple($recs->get('career_path')),
-            'umb_eval' => ($e = $recs->get('umb_eval')?->first()) ? ['score' => (float) $e->score] + $e->reason : null,
-            'umb_programs' => $this->programs($recs->get('umb_program'), $campuses),
-            'umb_s1_path' => $this->programs($recs->get('umb_s1_path'), $campuses),
+            // Mahasiswa: validasi prodi sekarang, jalur pindah jurusan, dan prodi lebih cocok di kampus sendiri.
+            'current' => ($e = $recs->get('mhs_eval')?->first()) ? ['id' => $e->target_id, 'score' => (float) $e->score] + $e->reason : null,
+            'switch_programs' => $this->programs($recs->get('mhs_switch'), $campuses),
+            'local_programs' => $this->programs($recs->get('mhs_local'), $campuses),
             'umb_promos' => $this->promos($session),
             // Dasar mapel pendukung SNBP dan catatan lulusan SMK (Diktum KETIGA).
             'snbp' => ['source' => config('mapel_pendukung.source_short'), 'smk_note' => config('mapel_pendukung.smk_note')],

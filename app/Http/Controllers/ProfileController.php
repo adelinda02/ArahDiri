@@ -20,7 +20,7 @@ class ProfileController extends Controller
 
     public function show(Request $request): Response
     {
-        $u = $request->user()->load('profile.umbProgram');
+        $u = $request->user()->load('profile.currentProgram.campus');
         $r = $u->latestResult();
 
         return Inertia::render('Profil', [
@@ -29,7 +29,7 @@ class ProfileController extends Controller
                 'level' => $u->level, 'level_label' => config('arahdiri.levels.'.$u->level),
                 'school' => $u->profile?->school_name, 'bio' => $u->profile?->bio,
                 'avatar' => $u->profile?->avatar ?: 'avatar1',
-                'umb_program' => $u->profile?->umbProgram?->original_name,
+                'current_program' => ($o = $u->profile?->currentProgram) ? $o->original_name.' · '.$o->campus?->name : null,
                 'password_changed_at' => $u->updated_at?->toIso8601String(),
             ],
             'result' => $r ? ['code' => $r->holland_code] : null,
@@ -58,7 +58,7 @@ class ProfileController extends Controller
         $u->profile()->updateOrCreate([], ['school_name' => $data['school'], 'bio' => $data['bio'], 'avatar' => $data['avatar']]);
         AuditLog::record('profile_updated', $u->id, meta: $levelChanged ? ['level' => $data['level']] : []);
 
-        if ($levelChanged && $u->fresh()->needsUmbOnboarding()) {
+        if ($levelChanged && $u->fresh()->needsProgramOnboarding()) {
             return redirect()->route('onboarding');
         }
 

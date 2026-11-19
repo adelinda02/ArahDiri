@@ -37,17 +37,26 @@ class AuthFlowTest extends TestCase
         }
     }
 
-    public function test_umb_student_must_pick_program_first(): void
+    public function test_college_student_must_pick_campus_and_program_first(): void
     {
-        $campus = Campus::create(['pt_code' => '031019', 'name' => 'Universitas Mercu Buana']);
-        $s1 = ProgramOffering::create(['campus_id' => $campus->id, 'program_code' => '55201', 'original_name' => 'Teknik Informatika', 'level' => 'S1']);
-        $s2 = ProgramOffering::create(['campus_id' => $campus->id, 'program_code' => '61101', 'original_name' => 'Magister Manajemen', 'level' => 'S2']);
-        $u = User::factory()->create(['level' => 'mhs_umb']);
+        $ui = Campus::create(['pt_code' => '001002', 'name' => 'Universitas Indonesia', 'city' => 'Kota Depok']);
+        $s1 = ProgramOffering::create(['campus_id' => $ui->id, 'program_code' => '55201', 'original_name' => 'Ilmu Komputer', 'level' => 'S1']);
+        $s2 = ProgramOffering::create(['campus_id' => $ui->id, 'program_code' => '61101', 'original_name' => 'Magister Manajemen', 'level' => 'S2']);
+        $u = User::factory()->create(['level' => 'mhs']);
         $u->profile()->create();
 
-        $this->actingAs($u)->get('/beranda')->assertRedirect('/mulai/prodi-umb');
-        $this->post('/mulai/prodi-umb', ['program_offering_id' => $s2->id, 'semester' => 3, 'self_declared' => true])->assertSessionHasErrors('program_offering_id');
-        $this->post('/mulai/prodi-umb', ['program_offering_id' => $s1->id, 'semester' => 3, 'self_declared' => true])->assertRedirect('/beranda');
+        $this->actingAs($u)->get('/beranda')->assertRedirect('/mulai/prodi');
+        $this->get('/mulai/prodi-umb')->assertRedirect('/mulai/prodi');
+        $this->get('/mulai/prodi')->assertOk()->assertInertia(fn ($p) => $p->component('Onboarding/CurrentProgram'));
+
+        // Cari kampus mana pun, lalu daftar prodi D3/D4/S1-nya (S2 tidak ikut).
+        $this->getJson('/mulai/prodi/kampus?q=depok')->assertOk()->assertJsonPath('0.name', 'Universitas Indonesia');
+        $this->getJson('/mulai/prodi/kampus/'.$ui->id)->assertOk()->assertJsonCount(1)->assertJsonPath('0.name', 'Ilmu Komputer');
+
+        $this->post('/mulai/prodi', ['program_offering_id' => $s2->id, 'semester' => 3, 'self_declared' => true])->assertSessionHasErrors('program_offering_id');
+        $this->post('/mulai/prodi', ['program_offering_id' => $s1->id, 'semester' => 3, 'self_declared' => true])->assertSessionHasErrors('feels_mismatch');
+        $this->post('/mulai/prodi', ['program_offering_id' => $s1->id, 'semester' => 3, 'self_declared' => true, 'feels_mismatch' => false])->assertRedirect('/beranda');
+        $this->assertDatabaseHas('student_profiles', ['user_id' => $u->id, 'current_program_offering_id' => $s1->id, 'current_semester' => 3, 'feels_mismatch' => false]);
         $this->get('/beranda')->assertOk();
     }
 }

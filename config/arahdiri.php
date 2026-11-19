@@ -18,7 +18,7 @@ return [
     'levels' => [
         'smp' => 'SMP',
         'sma_smk' => 'SMA / SMK',
-        'mhs_umb' => 'Mahasiswa UMB',
+        'mhs' => 'Mahasiswa',
     ],
 
     'recommend' => [

@@ -7,10 +7,10 @@ import { VIEW_URL } from '../lib/routes';
 
 const props = defineProps({
     latest: { type: Object, default: null }, // { holland_code, completed_at }
-    umbProgram: { type: Object, default: null }, // khusus mhs_umb: { name, level }
+    currentProgram: { type: Object, default: null }, // khusus mahasiswa: { name, level, campus }
 });
 const user = computed(() => usePage().props.auth.user);
-const isMhs = computed(() => user.value.level === 'mhs_umb');
+const isMhs = computed(() => user.value.level === 'mhs');
 </script>
 
 <template>
@@ -29,7 +29,7 @@ const isMhs = computed(() => user.value.level === 'mhs_umb');
             <section v-if="latest" class="v2-next">
                 <span class="v2-label">HASIL PERJALANANMU</span>
                 <h2>Kenali kombinasi<br>minatmu: {{ latest.holland_code }}</h2>
-                <p v-if="isMhs">Hasil tesmu sudah tersimpan. Lihat seberapa cocok prodi {{ umbProgram?.name ?? 'UMB-mu' }} dengan minatmu.</p>
+                <p v-if="isMhs">Hasil tesmu sudah tersimpan. Lihat seberapa cocok prodi {{ currentProgram?.name ?? 'mu' }} dengan minatmu, plus karier dan jalur yang bisa kamu ambil.</p>
                 <p v-else>Hasil tesmu sudah tersimpan. Gunakan sebagai panduan awal untuk mengeksplorasi pilihan.</p>
                 <Go :href="VIEW_URL.hasil" class="ed-button">Lihat hasil minat </Go>
                 <Go :href="VIEW_URL.tes + '?ulang=1'" class="ed-button ad-retest">Tes Ulang</Go>
@@ -37,7 +37,7 @@ const isMhs = computed(() => user.value.level === 'mhs_umb');
             <section v-else class="v2-next">
                 <span class="v2-label">LANGKAH PERTAMA</span>
                 <h2>Mulai dari<br>mengenal diri.</h2>
-                <p v-if="isMhs">50 pertanyaan sederhana tentang aktivitas yang kamu sukai. Hasilnya membantumu menilai kecocokan dengan prodi {{ umbProgram?.name ?? 'UMB-mu' }}.</p>
+                <p v-if="isMhs">50 pertanyaan sederhana tentang aktivitas yang kamu sukai. Hasilnya membantumu menilai kecocokan dengan prodi {{ currentProgram?.name ?? 'yang sedang kamu jalani' }}.</p>
                 <p v-else>50 pertanyaan sederhana tentang aktivitas yang kamu sukai. Jawab dengan jujur, sesuai ritmemu.</p>
                 <Go :href="VIEW_URL.tes" class="ed-button">Mulai tes minat </Go>
             </section>

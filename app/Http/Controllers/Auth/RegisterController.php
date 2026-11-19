@@ -49,7 +49,7 @@ class RegisterController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return $user->needsUmbOnboarding()
+        return $user->needsProgramOnboarding()
             ? redirect()->route('onboarding')
             : redirect()->route('beranda')->with('status', 'Akun berhasil dibuat. Selamat datang!');
     }

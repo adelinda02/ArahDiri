@@ -5,7 +5,7 @@
 **Kenali minatmu, temukan arah pendidikan dan kariermu.**
 
 Aplikasi web panduan penjurusan dan karier berbasis tes minat **RIASEC (Holland)**
-untuk siswa SMP, siswa SMA/SMK, dan mahasiswa Universitas Mercu Buana.
+untuk siswa SMP, siswa SMA/SMK, dan mahasiswa.
 
 ![PHP](https://img.shields.io/badge/PHP-8.5-777BB4?logo=php&logoColor=white)
 ![Laravel](https://img.shields.io/badge/Laravel-13-FF2D20?logo=laravel&logoColor=white)
@@ -13,7 +13,7 @@ untuk siswa SMP, siswa SMA/SMK, dan mahasiswa Universitas Mercu Buana.
 ![Inertia](https://img.shields.io/badge/Inertia-3-9553E9)
 ![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-8-4479A1?logo=mysql&logoColor=white)
-![Tests](https://img.shields.io/badge/tes-48%20lolos-success)
+![Tests](https://img.shields.io/badge/tes-53%20lolos-success)
 
 </div>
 
@@ -42,7 +42,7 @@ Banyak siswa memilih jurusan karena ikut teman, tebakan, atau tekanan dari luar,
 |---|---|---|
 | **Siswa SMP** | "Aku cocok jadi apa, dan sebaiknya masuk SMA atau SMK apa?" | 3 profesi yang paling cocok, masing-masing dengan **jalur mundurnya**: arah SMA atau program SMK → prodi kuliah → profesi |
 | **Siswa SMA/SMK** | "Jurusan kuliah apa yang cocok, dan di kampus mana?" | 3 prodi dengan karier utama berbeda, masing-masing dengan 1 kampus berakreditasi, ditambah pilihan prodi di UMB |
-| **Mahasiswa UMB** | "Apakah prodiku sekarang sudah cocok?" | Posisi prodimu di antara prodi UMB lain, 3 prodi UMB paling cocok, dan karier dari prodimu sekarang |
+| **Mahasiswa** (kampus mana pun) | "Apakah jurusanku sekarang sudah cocok?" | Validasi jurusan (yakin / ragu / pertimbangkan pindah), 3 karier paling cocok, dan jalur pindah jurusan dengan langkah konsultasinya |
 
 > ArahDiri adalah **alat bantu awal**, bukan pengganti guru BK, konselor, atau orang tua. Persentase yang ditampilkan menunjukkan **keselarasan profil minat**, bukan peluang diterima.
 
@@ -70,7 +70,7 @@ Banyak siswa memilih jurusan karena ikut teman, tebakan, atau tekanan dari luar,
 
 ## 🧠 Cara kerja mesin rekomendasi
 
-Kode mesin ada di [`app/Services/Recommendation`](app/Services/Recommendation). Versi yang berlaku sekarang adalah **`rec-v4`**. Setiap rekomendasi disimpan bersama versinya, sehingga hasil lama tetap bisa dibaca dan dibedakan.
+Kode mesin ada di [`app/Services/Recommendation`](app/Services/Recommendation). Versi yang berlaku sekarang adalah **`rec-v5`**. Setiap rekomendasi disimpan bersama versinya, sehingga hasil lama tetap bisa dibaca dan dibedakan.
 
 ### Gambaran umum
 
@@ -81,7 +81,7 @@ flowchart LR
     C --> D{Jenjang}
     D -->|SMP| E[Jalur per profesi]
     D -->|SMA/SMK| F[3 prodi + kampus]
-    D -->|Mahasiswa UMB| G[Evaluasi prodi UMB]
+    D -->|Mahasiswa| G[Validasi jurusan + karier]
 ```
 
 ### Langkah 1: Menghitung skor minat
@@ -126,11 +126,16 @@ flowchart LR
    Prodi dan kampusnya wajib berakreditasi aktif menurut BAN-PT.
 4. **Promosi UMB**: ditampilkan terpisah tanpa mengubah urutan, yaitu prodi UMB dari rumpun yang sama atau yang mengarah ke karier yang sama.
 
-### Langkah 3c: Mahasiswa UMB, evaluasi prodi
+### Langkah 3c: Mahasiswa, validasi jurusan
 
-- Posisi prodi yang sedang dijalani di antara semua prodi UMB sejenjang.
-- 3 prodi UMB paling cocok. Untuk mahasiswa D3 ditambah jalur lanjutan ke S1.
-- **"Bertahan sambil belok arah"**: 3 karier dari prodi sekarang yang paling sesuai minat.
+- Mahasiswa memilih **kampus dan prodi** yang sedang dijalani dari katalog PDDikti (D3/D4/S1, kampus mana pun).
+- **Validasi jurusan**: posisi prodi itu di antara semua prodi sejenjang. 20% teratas = **sudah yakin**, 20–50% = **ragu**, sisanya = **pertimbangkan pindah**. Ketiga sikap ditampilkan dengan keterangan dan langkahnya; yang paling sesuai dibuka otomatis.
+- **3 karier** paling cocok dari kelompok jabatan berbeda, plus karier dari prodi sekarang yang paling sesuai minat.
+- **Jalur pindah jurusan**: 3 prodi yang lebih cocok (karier utama berbeda, nama tidak mirip). Prodi yang ada di kampus sendiri didahulukan dan ditandai, ditambah daftar prodi lebih cocok di kampus sendiri. Langkah berikutnya: konsultasi ke bagian akademik (pindah internal) atau bagian penerimaan kampus tujuan.
+
+### AI Pathway
+
+Bagian kesimpulan di halaman hasil disebut **AI Pathway**: ringkasan profil, jalur utama, alternatif, dan langkah 30 hari / semester ini / sebelum mendaftar. Teksnya disusun otomatis dan deterministik dari skor RIASEC dan rekomendasi tersimpan ([`resources/js/lib/pathway.js`](resources/js/lib/pathway.js)), tanpa layanan AI luar.
 
 ### Prinsip yang dijaga
 
@@ -169,7 +174,7 @@ Data katalog disimpan sebagai CSV di [`database/data/`](database/data) dan dimua
 | Build tool | **Vite 8** + `laravel-vite-plugin` |
 | Tampilan | CSS ArahDiri v14 (dipakai apa adanya) + penyesuaian `v2.css` dan `admin.css` |
 | Database | **MySQL 8** / MariaDB 10.6+ (pengujian memakai SQLite) |
-| Pengujian | **PHPUnit 12** (48 tes fitur dan unit) |
+| Pengujian | **PHPUnit 12** (53 tes fitur dan unit) |
 | Format kode | Laravel Pint |
 | Penjadwal | Laravel Scheduler (cron) untuk sinkron BAN-PT mingguan |
 | Target hosting | Shared hosting cPanel (Rumahweb) |

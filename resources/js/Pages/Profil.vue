@@ -85,7 +85,7 @@ const MENU = [
                     <p class="profile-user-email"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg><span>{{ account.email }}</span></p>
                     <div class="profile-meta-tags">
                         <span class="profile-meta-chip">Jenjang: <b>{{ account.level_label }}</b></span>
-                        <span v-if="account.umb_program || account.school" class="profile-meta-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>{{ account.umb_program ? account.umb_program + ' · UMB' : account.school }}</span>
+                        <span v-if="account.current_program || account.school" class="profile-meta-chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" /></svg>{{ account.current_program || account.school }}</span>
                     </div>
                     <p class="profile-bio-text">"{{ account.bio || 'Masa Depanmu, Pilihanmu, Arahmu!' }}"</p>
                 </div>
@@ -231,7 +231,7 @@ const MENU = [
                             <h4>1. Data yang disimpan</h4>
                             <p>Nama, nama pengguna, email, nomor HP, jenjang, asal sekolah (bila diisi), jawaban tes, hasil tes, rekomendasi, favorit, dan target pengembangan. Kami tidak meminta tanggal lahir, alamat, foto, atau dokumen identitas.</p>
                             <h4>2. Untuk apa</h4>
-                            <p>Menghitung profil minat, menyusun rekomendasi sekolah, prodi, kampus, dan karier, serta menyimpan riwayatmu. Mahasiswa yang memilih jenjang Mahasiswa UMB mengisi prodi UMB-nya sendiri tanpa verifikasi.</p>
+                            <p>Menghitung profil minat, menyusun rekomendasi sekolah, prodi, kampus, dan karier, serta menyimpan riwayatmu. Mahasiswa mengisi kampus dan prodinya sendiri tanpa verifikasi.</p>
                             <h4>3. Siapa yang bisa melihat</h4>
                             <p>Kamu sendiri. Admin hanya melihat angka gabungan (misalnya jumlah tes per jenjang). Data per orang hanya bisa dibuka pemilik aplikasi dan setiap aksesnya tercatat. Ekspor untuk penelitian memakai ID acak tanpa nama, email, atau nomor HP.</p>
                             <h4>4. Kendalimu</h4>
@@ -252,7 +252,7 @@ const MENU = [
                                 <span class="tag on" style="margin-top:8px">Versi 2</span>
                             </div>
                             <h4>Latar belakang</h4>
-                            <p>ArahDiri membantu siswa SMP, SMA/SMK, dan mahasiswa Universitas Mercu Buana mengenali minatnya dan menghubungkannya dengan pilihan sekolah, prodi, kampus, dan karier.</p>
+                            <p>ArahDiri membantu siswa SMP, SMA/SMK, dan mahasiswa mengenali minatnya dan menghubungkannya dengan pilihan sekolah, prodi, kampus, dan karier.</p>
                             <h4>Metode</h4>
                             <p>Tes 50 pernyataan berbasis model minat Holland (RIASEC): Realistic, Investigative, Artistic, Social, Enterprising, dan Conventional. Profil minat pekerjaan dari O*NET 31.0 dipadankan dengan jabatan KBJI 2026.</p>
                             <h4>Data</h4>

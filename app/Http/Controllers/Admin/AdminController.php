@@ -151,7 +151,7 @@ class AdminController extends Controller
 
             $query->chunk(500, function ($rows) use ($out, $withAnswers, $n) {
                 $ids = $rows->pluck('id');
-                $recs = DB::table('recommendations')->whereIn('test_session_id', $ids)->whereIn('kind', ['program', 'umb_program'])->where('rank', '<=', 3)
+                $recs = DB::table('recommendations')->whereIn('test_session_id', $ids)->whereIn('kind', ['program', 'mhs_switch'])->where('rank', '<=', 3)
                     ->orderBy('rank')->get(['test_session_id', 'reason'])->groupBy('test_session_id');
                 $promo = DB::table('umb_promotions')->whereIn('test_session_id', $ids)->select('test_session_id', DB::raw('count(*) as n'))->groupBy('test_session_id')->pluck('n', 'test_session_id');
                 $answers = $withAnswers ? DB::table('test_answers')->whereIn('test_session_id', $ids)->get()->groupBy('test_session_id') : collect();

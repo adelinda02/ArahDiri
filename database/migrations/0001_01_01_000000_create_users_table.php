@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('phone', 20)->unique();
             $table->string('password');
             $table->string('role', 10)->default('user'); // user | admin | owner
-            $table->string('level', 10); // smp | sma_smk | mhs_umb
+            $table->string('level', 10); // smp | sma_smk | mhs (dulu mhs_umb)
             $table->boolean('is_active')->default(true);
             $table->rememberToken();
             $table->timestamps();

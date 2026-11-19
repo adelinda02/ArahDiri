@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Mahasiswa UMB wajib memilih prodi UMB-nya dulu sebelum memakai fitur lain.
+ * Mahasiswa wajib memilih kampus dan prodi yang sedang dijalani sebelum memakai fitur lain.
  */
 class EnsureOnboarded
 {
@@ -15,7 +15,7 @@ class EnsureOnboarded
     {
         $user = $request->user();
 
-        if ($user && $user->needsUmbOnboarding()) {
+        if ($user && $user->needsProgramOnboarding()) {
             return redirect()->route('onboarding');
         }
 

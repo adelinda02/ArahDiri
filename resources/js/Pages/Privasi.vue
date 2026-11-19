@@ -17,7 +17,7 @@ import BackBar from '../Components/BackBar.vue';
             <ul class="klist">
                 <li><b>Akun</b><br><span>Nama tampilan, nama pengguna, email, nomor HP, jenjang, dan kata sandi (disimpan teracak, tidak bisa dibaca siapa pun).</span></li>
                 <li><b>Profil (opsional)</b><br><span>Asal sekolah, bio singkat, dan karakter avatar. Kami tidak menyimpan foto.</span></li>
-                <li><b>Mahasiswa UMB</b><br><span>Prodi dan semester yang kamu pilih sendiri, tanpa verifikasi.</span></li>
+                <li><b>Mahasiswa</b><br><span>Kampus, prodi, dan semester yang kamu pilih sendiri, tanpa verifikasi.</span></li>
                 <li><b>Tes dan hasil</b><br><span>Jawaban 50 pernyataan, skor, kode minat, rekomendasi, serta salinan akreditasi saat tes selesai.</span></li>
                 <li><b>Pilihanmu</b><br><span>Favorit dan target pengembangan diri.</span></li>
             </ul>

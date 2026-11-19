@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\DB;
  */
 class RecommendationEngine
 {
-    public const VERSION = 'rec-v4';
+    public const VERSION = 'rec-v6';
 
     /** Jenjang prodi yang direkomendasikan untuk siswa sekolah, urutan juga dipakai pemecah seri. */
     private const SCHOOL_LEVELS = ['S1', 'D4', 'D3'];
@@ -39,7 +39,7 @@ class RecommendationEngine
 
             match ($session->level_at_test) {
                 User::LEVEL_SMP => $this->forSmp($session, $user),
-                User::LEVEL_MHS_UMB => $this->forUmbStudent($session, $user),
+                User::LEVEL_MHS => $this->forCollegeStudent($session, $user),
                 default => $this->forSmaSmk($session, $user),
             };
         });
@@ -137,7 +137,8 @@ class RecommendationEngine
 
             $rank++;
             $this->save($s, 'career_path', $rank, 'kbji_job', $j->code, $c['score'], [
-                'title' => $j->title, 'holland' => $j->holland_code, 'description' => $this->short($j->description),
+                'title' => $j->title, 'holland' => $j->holland_code, 'description' => $this->short($j->description, 420),
+                'zone_min' => $j->job_zone_min, 'zone_max' => $j->job_zone_max,
                 'because' => $this->because($userTop, $j->holland_code),
                 'programs' => $programs->map(fn ($p) => [
                     'id' => (string) $p['f']->id, 'name' => $p['f']->name, 'level' => $p['f']->level, 'field' => $p['f']->field,
@@ -192,53 +193,198 @@ class RecommendationEngine
         $this->umbPromotions($s, $picked);
     }
 
-    private function forUmbStudent(TestSession $s, array $u): void
+    /**
+     * Mahasiswa (kampus mana pun). Alurnya bergantung pada jawaban awal "merasa salah jurusan?":
+     *  - YA    → 3 karier paling cocok dengan minat, lalu dari tiap karier 1–2 jurusan yang sejalan
+     *            (katalog prodi Indonesia, tanpa memilih kampus);
+     *  - TIDAK → 3 profesi dari jurusan sekarang yang paling cocok dengan minat (tanpa saran pindah).
+     */
+    private function forCollegeStudent(TestSession $s, array $u): void
     {
         $profile = DB::table('student_profiles')->where('user_id', $s->user_id)->first();
-        $current = $profile?->umb_program_offering_id
-            ? DB::table('program_offerings')->where('id', $profile->umb_program_offering_id)->first()
+        $current = $profile?->current_program_offering_id
+            ? DB::table('program_offerings as o')->join('campuses as c', 'c.id', '=', 'o.campus_id')
+                ->where('o.id', $profile->current_program_offering_id)
+                ->first(['o.*', 'c.name as campus_name', 'c.pt_code', 'c.city', 'c.province', 'c.ownership', 'c.website'])
             : null;
         if (! $current) {
             return; // belum memilih prodi; halaman hasil meminta melengkapi profil
         }
 
-        $ranked = $this->rankUmbOfferings($u, $current->level);
-        $pos = $ranked->search(fn ($r) => $r['offering']->id === $current->id);
-        $currentRow = $pos === false ? null : $ranked[$pos];
+        $mismatch = (bool) ($profile->feels_mismatch ?? false);
+        $userTop = array_slice(array_map('strtoupper', Riasec::rank($u)), 0, 3);
         $family = $current->program_family_id ? DB::table('program_families')->find($current->program_family_id) : null;
+        $curScore = $family?->holland_code ? round(Riasec::match($u, $this->onetVector($family)), 6) : 0;
 
-        // Evaluasi prodi sekarang.
-        $this->save($s, 'umb_eval', 1, 'program_offering', (string) $current->id, $currentRow['score'] ?? 0, [
-            'name' => $current->original_name, 'level' => $current->level,
-            'position' => $pos === false ? null : $pos + 1, 'total' => $ranked->count(),
-            'program_holland' => $family?->holland_code, 'in_top3' => $pos !== false && $pos < 3,
+        // Karier dari jurusan sekarang, urut kecocokan dengan minat.
+        $currentJobs = $family ? collect($this->jobsFor('program_family_jobs', 'program_family_id', $family->id, 20, $u))
+            ->reject(fn ($j) => preg_match('/\bytdl\b|lainnya/i', $j['title']))
+            ->sortByDesc(fn ($j) => $j['score'] ?? 0)->values() : collect();
+
+        $this->save($s, 'mhs_eval', 1, 'program_offering', (string) $current->id, $curScore, [
+            'name' => $current->original_name, 'level' => $current->level, 'field' => $family?->field ?? $current->field,
+            'holland' => $family?->holland_code, 'campus' => ['name' => $current->campus_name, 'city' => $current->city, 'province' => $current->province],
+            'because' => $this->because($userTop, $family?->holland_code),
+            'semester' => $profile->current_semester, 'feels_mismatch' => $mismatch,
         ]);
 
-        // Tiga prodi UMB terbaik di jenjang yang sama.
-        foreach ($ranked->take(3)->values() as $i => $r) {
-            $this->saveUmbProgram($s, 'umb_program', $i + 1, $r, $current->id);
-        }
-
-        // D3 UMB hanya sedikit: tampilkan juga jalur lanjutan S1.
-        if ($current->level === 'D3') {
-            foreach ($this->rankUmbOfferings($u, 'S1')->take(3)->values() as $i => $r) {
-                $this->saveUmbProgram($s, 'umb_s1_path', $i + 1, $r, $current->id);
-            }
-        }
-
-        // Bertahan sambil belok arah: karier dari prodi sekarang yang paling cocok.
-        if ($family) {
-            $jobs = DB::table('program_family_jobs as fj')->join('kbji_jobs as j', 'j.code', '=', 'fj.kbji_code')
-                ->where('fj.program_family_id', $family->id)->whereNotNull('j.holland_code')
-                ->get(['j.*'])
-                ->map(fn ($j) => [$j, Riasec::match($u, $this->onetVector($j))])
-                ->sortByDesc(fn ($x) => $x[1])->take(3)->values();
-            foreach ($jobs as $i => [$j, $score]) {
-                $this->save($s, 'career', $i + 1, 'kbji_job', $j->code, $score, [
-                    'title' => $j->title, 'holland' => $j->holland_code, 'description' => $this->short($j->description),
+        if (! $mismatch) {
+            // TIDAK: profesi harus dari jurusan sekarang.
+            foreach ($currentJobs->take(3) as $i => $j) {
+                $job = DB::table('kbji_jobs')->where('code', $j['code'])->first();
+                $this->save($s, 'career', $i + 1, 'kbji_job', $j['code'], (float) ($j['score'] ?? 0), $this->careerReason($job, $userTop) + [
+                    'programs' => [['id' => (string) $family->id, 'name' => $current->original_name, 'level' => $current->level, 'is_current' => true]],
                 ]);
             }
+
+            return;
         }
+
+        // YA: karier dulu, lalu jurusan yang sejalan dengan karier itu (selain jurusan sekarang).
+        $rank = 0;
+        $usedPrograms = [];
+        foreach ($this->rankCareers($u, 12) as $c) {
+            if ($rank === 3) {
+                break;
+            }
+            $programs = array_values(array_filter(
+                $this->programsForCareer($c['j']->code, $u, $userTop, [$current->original_name]),
+                fn ($p) => ! in_array($p['id'], $usedPrograms, true)
+            ));
+            if (! $programs) {
+                continue; // tidak ada jurusan lain yang mengarah ke karier ini
+            }
+            $rank++;
+            $this->save($s, 'career', $rank, 'kbji_job', $c['j']->code, $c['score'], $this->careerReason($c['j'], $userTop) + ['programs' => $programs]);
+            array_push($usedPrograms, ...array_column($programs, 'id'));
+        }
+    }
+
+    /**
+     * 1–2 jurusan (kelompok prodi S1/D4/D3 yang dibuka di kampus Indonesia) yang mengarah ke satu karier:
+     * keterkaitan di katalog dulu, lalu kecocokan minat, S1 dulu, lalu yang paling banyak dibuka.
+     */
+    private function programsForCareer(string $code, array $u, array $userTop, array $excludeNames, int $n = 2): array
+    {
+        $rows = DB::table('program_family_jobs as l')->join('program_families as f', 'f.id', '=', 'l.program_family_id')
+            ->where('l.kbji_code', $code)->whereIn('f.level', self::SCHOOL_LEVELS)
+            ->where('f.is_recommendable', true)->whereNotNull('f.holland_code')
+            ->select('f.*', 'l.rank as link_rank')
+            ->selectSub(fn ($q) => $q->from('program_offerings as o')->whereColumn('o.program_family_id', 'f.id')->where('o.is_active', true)->selectRaw('count(*)'), 'offerings_count')
+            ->get()
+            ->filter(fn ($f) => $f->offerings_count > 0)
+            ->reject(fn ($f) => Settings::get('recommend.exclude_religious') && preg_match(config('arahdiri.recommend.religious_pattern'), $f->name))
+            ->reject(fn ($f) => $this->similarName($f->name, $excludeNames))
+            ->map(fn ($f) => ['f' => $f, 'score' => round(Riasec::match($u, $this->onetVector($f)), 6)])
+            ->sort(fn ($a, $b) => [(int) $a['f']->link_rank, -round($a['score'], 2), (int) ($b['f']->level === 'S1'), -(int) $a['f']->offerings_count]
+                <=> [(int) $b['f']->link_rank, -round($b['score'], 2), (int) ($a['f']->level === 'S1'), -(int) $b['f']->offerings_count]);
+
+        $out = [];
+        foreach ($rows as $r) {
+            if (count($out) === $n) {
+                break;
+            }
+            $f = $r['f'];
+            if ($this->similarName($f->name, array_column($out, 'name'))) {
+                continue;
+            }
+            $out[] = [
+                'id' => (string) $f->id, 'name' => $f->name, 'level' => $f->level, 'field' => $f->field, 'holland' => $f->holland_code,
+                'score' => round($r['score'], 4), 'offerings_count' => (int) $f->offerings_count,
+                'because' => $this->because($userTop, $f->holland_code),
+                'subjects' => SupportSubjects::forProgram($f->name, $f->field, SupportSubjects::overrideOf($f)),
+            ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * Profesi KBJI paling cocok dengan minat, dari kelompok jabatan kecil berbeda, yang punya prodi lanjutan.
+     *
+     * @return Collection<int, array{j: object, score: float, programs: list<array{id: string, name: string, level: string}>}>
+     */
+    private function rankCareers(array $u, int $n = 3): Collection
+    {
+        $religious = fn (string $text) => Settings::get('recommend.exclude_religious') && preg_match(config('arahdiri.recommend.religious_pattern'), $text);
+        $links = DB::table('program_family_jobs as l')->join('program_families as f', 'f.id', '=', 'l.program_family_id')
+            ->whereIn('f.level', self::SCHOOL_LEVELS)->where('f.is_recommendable', true)
+            ->orderBy('l.rank')->get(['l.kbji_code', 'f.id', 'f.name', 'f.level'])
+            ->reject(fn ($f) => $religious($f->name))
+            ->groupBy('kbji_code');
+
+        $careers = DB::table('kbji_jobs')->whereNotNull('holland_code')->whereIn('code', $links->keys())
+            ->when(Settings::get('recommend.require_active_careers'), fn ($q) => $q->where('is_active', true))
+            ->get()
+            ->reject(fn ($j) => $religious($j->title) || preg_match('/\bytdl\b|lainnya/i', $j->title))
+            ->map(fn ($j) => ['j' => $j, 'score' => round(Riasec::match($u, $this->onetVector($j)), 6)])
+            ->sort(fn ($a, $b) => [round($b['score'], 2), $links[$b['j']->code]->count(), $a['j']->title] <=> [round($a['score'], 2), $links[$a['j']->code]->count(), $b['j']->title]);
+
+        $out = collect();
+        $groups = [];
+        foreach ($careers as $c) {
+            if ($out->count() === $n) {
+                break;
+            }
+            $group = substr($c['j']->code, 0, 3); // kelompok jabatan kecil berbeda → profesi beragam
+            if (isset($groups[$group])) {
+                continue;
+            }
+            $groups[$group] = true;
+            $out->push($c + ['programs' => $links[$c['j']->code]->unique('name')->take(3)
+                ->map(fn ($f) => ['id' => (string) $f->id, 'name' => $f->name, 'level' => $f->level])->values()->all()]);
+        }
+
+        return $out;
+    }
+
+    /** Data tampilan satu profesi KBJI. */
+    private function careerReason(object $j, array $userTop): array
+    {
+        return [
+            'title' => $j->title, 'holland' => $j->holland_code, 'description' => $this->short($j->description, 420),
+            'zone_min' => $j->job_zone_min, 'zone_max' => $j->job_zone_max, 'because' => $this->because($userTop, $j->holland_code),
+        ];
+    }
+
+    /** Simpan satu rekomendasi prodi beserta detailnya (alasan, mapel, karier, kampus lain). */
+    private function saveProgram(TestSession $s, string $kind, int $rank, array $row, array $userTop, array $u, ?array $campus, array $extra = []): Recommendation
+    {
+        $f = $row['f'];
+        $exclude = $campus ? [$campus['campus_id']] : [];
+        // Kampus lain yang juga membuka prodi ini: berakreditasi aktif bila datanya ada, selain itu dari katalog.
+        $alts = $this->campuses->hasAccreditationData()
+            ? $this->campuses->candidates($f->id, $exclude, 4)
+            : $this->campuses->catalogCampuses($f->id, $exclude, 5);
+
+        return $this->save($s, $kind, $rank, 'program_family', (string) $f->id, $row['score'], [
+            'name' => $f->name, 'level' => $f->level, 'field' => $f->field, 'holland' => $f->holland_code,
+            'offerings_count' => (int) $f->offerings_count,
+            'because' => $this->because($userTop, $f->holland_code),
+            'subjects' => SupportSubjects::forProgram($f->name, $f->field, SupportSubjects::overrideOf($f)),
+            'careers' => $this->jobsFor('program_family_jobs', 'program_family_id', $f->id, 5, $u),
+            'alt_campuses' => array_map([CampusPicker::class, 'brief'], $alts),
+        ] + $extra);
+    }
+
+    /**
+     * Nama prodi terlalu mirip dengan salah satu yang sudah dipilih, mis. "Film dan Televisi" ↔ "Televisi dan Film"
+     * ↔ "Film", atau "Ilmu Komunikasi" ↔ "Komunikasi". Kemiripan kata (Jaccard) minimal 0,5.
+     */
+    private function similarName(string $name, array $used): bool
+    {
+        $tokens = fn (string $n) => array_values(array_unique(array_diff(
+            preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($n), -1, PREG_SPLIT_NO_EMPTY), ['dan', 'ilmu', 'program', 'studi'])));
+        $a = $tokens($name);
+        foreach ($used as $other) {
+            $b = $tokens($other);
+            $union = count(array_unique(array_merge($a, $b)));
+            if ($union && count(array_intersect($a, $b)) / $union >= 0.5) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // ------------------------------------------------------------------ prodi + kampus
@@ -253,6 +399,7 @@ class RecommendationEngine
     {
         $ranked = $this->rankFamilies($u, self::SCHOOL_LEVELS);
         $mainJob = $this->mainJobs();
+        $userTop = array_slice(array_map('strtoupper', Riasec::rank($u)), 0, 3);
 
         $hasData = $this->campuses->hasAccreditationData();
         $eligible = $hasData ? $this->campuses->eligibleFamilyIds() : null;
@@ -268,27 +415,24 @@ class RecommendationEngine
                 continue; // tidak ada kampus berakreditasi aktif untuk prodi ini
             }
             $job = $mainJob[$f->id] ?? null;
-            $nameKey = mb_strtolower($f->name);
-            if (($job && in_array($job, $usedJobs, true)) || in_array($nameKey, $usedNames, true)) {
-                continue; // jalur karier utama harus berbeda
+            if (($job && in_array($job, $usedJobs, true)) || $this->similarName($f->name, $usedNames)) {
+                continue; // jalur karier utama dan nama prodi harus benar-benar berbeda
             }
 
-            $campus = $hasData ? $this->campuses->pick($f->id, $usedCampuses) : null;
+            // Tanpa data akreditasi: kampus dari katalog PDDikti (PTN dulu), ditandai belum diverifikasi.
+            $campus = $hasData ? $this->campuses->pick($f->id, $usedCampuses)
+                : ($this->campuses->catalogCampuses($f->id, $usedCampuses, 1)[0] ?? $this->campuses->catalogCampuses($f->id, [], 1)[0] ?? null);
             if ($hasData && ! $campus) {
                 continue; // tidak ada kampus memenuhi syarat → prodi berikutnya
             }
 
-            $jobs = $this->jobsFor('program_family_jobs', 'program_family_id', $f->id, 4);
-            $rec = $this->save($s, 'program', count($picked) + 1, 'program_family', (string) $f->id, $row['score'], [
-                'name' => $f->name, 'level' => $f->level, 'field' => $f->field, 'holland' => $f->holland_code,
-                'offerings_count' => (int) $f->offerings_count, 'careers' => $jobs,
-            ]);
+            $rec = $this->saveProgram($s, 'program', count($picked) + 1, $row, $userTop, $u, $campus);
             $this->saveCampus($rec, $campus);
 
             $job && $usedJobs[] = $job;
             $campus && $usedCampuses[] = $campus['campus_id'];
-            $usedNames[] = $nameKey;
-            $picked[] = ['rec' => $rec, 'family' => $f, 'jobs' => array_column($jobs, 'code')];
+            $usedNames[] = $f->name;
+            $picked[] = ['rec' => $rec, 'family' => $f, 'jobs' => array_column($rec->reason['careers'], 'code')];
         }
 
         return $picked;
@@ -372,42 +516,6 @@ class RecommendationEngine
         }
     }
 
-    /** Prodi UMB aktif pada satu jenjang, diurutkan dari kecocokan tertinggi. */
-    private function rankUmbOfferings(array $u, string $level): Collection
-    {
-        $umb = Campus::query()->umb()->first();
-        if (! $umb) {
-            return collect();
-        }
-        $hasData = $this->campuses->hasAccreditationData();
-        $today = now()->toDateString();
-
-        return DB::table('program_offerings as o')->join('program_families as f', 'f.id', '=', 'o.program_family_id')
-            ->where('o.campus_id', $umb->id)->where('o.level', $level)->where('o.is_active', true)->whereNotNull('f.holland_code')
-            ->get(['o.*', 'f.riasec_r', 'f.riasec_i', 'f.riasec_a', 'f.riasec_s', 'f.riasec_e', 'f.riasec_c', 'f.holland_code', 'f.id as family_id'])
-            ->map(function ($o) use ($u, $hasData, $today) {
-                $acc = $this->campuses->forOffering($o->id);
-                $active = $acc && $acc['p_score'] > 0 && (! $acc['p_expires'] || $acc['p_expires'] >= $today);
-
-                return ['offering' => $o, 'score' => round(Riasec::match($u, $this->onetVector($o)), 6), 'acc' => $acc, 'active' => $active];
-            })
-            // Hanya prodi aktif menurut BAN-PT; tanpa data akreditasi, semua prodi katalog dipakai.
-            ->filter(fn ($r) => ! $hasData || $r['active'])
-            ->sort(fn ($a, $b) => [$b['score'], $a['offering']->original_name] <=> [$a['score'], $b['offering']->original_name])
-            ->values();
-    }
-
-    private function saveUmbProgram(TestSession $s, string $kind, int $rank, array $r, int $currentId): void
-    {
-        $o = $r['offering'];
-        $rec = $this->save($s, $kind, $rank, 'program_offering', (string) $o->id, $r['score'], [
-            'name' => $o->original_name, 'level' => $o->level, 'holland' => $o->holland_code,
-            'is_current' => $o->id === $currentId,
-            'careers' => $this->jobsFor('program_family_jobs', 'program_family_id', $o->family_id, 3),
-        ]);
-        $this->saveCampus($rec, $r['acc'] ?: ['offering_id' => $o->id, 'campus_id' => $o->campus_id], ! $r['acc']);
-    }
-
     // ------------------------------------------------------------------ penyimpanan
 
     private function save(TestSession $s, string $kind, int $rank, string $type, string $id, float $score, array $reason): Recommendation
@@ -463,12 +571,24 @@ class RecommendationEngine
     }
 
     /** @return list<array{code: string, title: string}> */
-    private function jobsFor(string $table, string $col, $id, int $limit): array
+    /**
+     * Karier yang terhubung ke satu prodi, urut keterkaitan, beserta deskripsi, tingkat persiapan (job zone O*NET)
+     * dan kecocokan dengan minat pengguna (bila $u diberikan).
+     *
+     * @return list<array{code: string, title: string, description: ?string, holland: ?string, zone_min: ?int, zone_max: ?int, score: ?float}>
+     */
+    private function jobsFor(string $table, string $col, $id, int $limit, ?array $u = null): array
     {
         return DB::table($table.' as l')->join('kbji_jobs as j', 'j.code', '=', 'l.kbji_code')
             ->where('l.'.$col, $id)->when(Settings::get('recommend.require_active_careers'), fn ($q) => $q->where('j.is_active', true))
             ->orderBy('l.rank')->limit($limit)
-            ->get(['j.code', 'j.title'])->map(fn ($j) => ['code' => $j->code, 'title' => $j->title])->all();
+            ->get(['j.*'])
+            ->reject(fn ($j) => Settings::get('recommend.exclude_religious') && preg_match(config('arahdiri.recommend.religious_pattern'), $j->title))
+            ->map(fn ($j) => [
+                'code' => $j->code, 'title' => $j->title, 'description' => $this->short($j->description, 220),
+                'holland' => $j->holland_code, 'zone_min' => $j->job_zone_min, 'zone_max' => $j->job_zone_max,
+                'score' => $u && $j->holland_code ? round(Riasec::match($u, $this->onetVector($j)), 4) : null,
+            ])->values()->all();
     }
 
     private function short(?string $text, int $max = 260): ?string

@@ -14,13 +14,14 @@ const PRESETS = { ISC: [33, 73, 43, 65, 40, 58], RIC: [90, 80, 20, 30, 30, 60], 
 function preset(k) { DIMS.forEach(([d], i) => (f[d] = PRESETS[k][i])); }
 function run() {
     const q = { jenjang: f.jenjang, jalankan: 1, ...Object.fromEntries(DIMS.map(([d]) => [d, f[d]])) };
-    if (f.jenjang === 'mhs_umb' && f.umb) q.umb = f.umb;
+    if (f.jenjang === 'mhs' && f.umb) q.umb = f.umb;
+    if (f.jenjang === 'mhs') q.salah = f.salah ? 1 : 0;
     router.get('/admin/simulator', q, { preserveState: true, preserveScroll: true });
 }
 const pct = (s) => Math.round((s ?? 0) * 100);
 const liveCode = computed(() => DIMS.map(([d]) => d).sort((a, b) => f[b] - f[a]).slice(0, 3).join('').toUpperCase());
 const r = computed(() => props.result);
-const empty = computed(() => r.value && !['career_paths', 'programs', 'careers', 'umb_programs'].some((k) => r.value[k]?.length) && !r.value.umb_eval);
+const empty = computed(() => r.value && !['career_paths', 'programs', 'careers', 'switch_programs'].some((k) => r.value[k]?.length) && !r.value.current);
 const acc = (c) => [c.program_accreditation?.rating && 'Prodi ' + c.program_accreditation.rating, c.campus_accreditation?.rating && 'PT ' + c.campus_accreditation.rating].filter(Boolean).join(' · ');
 </script>
 
@@ -36,9 +37,13 @@ const acc = (c) => [c.program_accreditation?.rating && 'Prodi ' + c.program_accr
                 <label for="sim-level">Jenjang</label>
                 <select id="sim-level" v-model="f.jenjang"><option v-for="(l, k) in levels" :key="k" :value="k">{{ l }}</option></select>
             </div>
-            <div v-if="f.jenjang === 'mhs_umb'" class="field">
-                <label for="sim-umb">Prodi UMB yang dijalani</label>
+            <div v-if="f.jenjang === 'mhs'" class="field">
+                <label for="sim-umb">Contoh prodi yang dijalani (UMB)</label>
                 <select id="sim-umb" v-model="f.umb"><option v-for="o in umbOptions" :key="o.id" :value="o.id">{{ o.label }}</option></select>
+            </div>
+            <div v-if="f.jenjang === 'mhs'" class="field">
+                <label for="sim-salah">Merasa salah jurusan?</label>
+                <select id="sim-salah" v-model="f.salah"><option :value="true">Iya</option><option :value="false">Tidak</option></select>
             </div>
             <div class="field wide">
                 <label>Skor minat (0–100%) · kode saat ini <b>{{ liveCode }}</b></label>
@@ -73,10 +78,14 @@ const acc = (c) => [c.program_accreditation?.rating && 'Prodi ' + c.program_accr
         </table></div>
 
         <!-- UMB: posisi prodi sekarang -->
-        <div v-if="r.umb_eval" class="notice" style="margin-bottom:16px">Prodi sekarang <b>{{ r.umb_eval.name }} ({{ r.umb_eval.level }})</b>: peringkat {{ r.umb_eval.position ?? '-' }} dari {{ r.umb_eval.total }} prodi UMB sejenjang · selaras {{ pct(r.umb_eval.score) }}%.</div>
+        <div v-if="r.current" class="notice" style="margin-bottom:16px">Prodi sekarang <b>{{ r.current.name }} ({{ r.current.level }})</b> di {{ r.current.campus?.name }} · selaras {{ pct(r.current.score) }}% · merasa salah jurusan: <b>{{ r.current.feels_mismatch ? 'iya' : 'tidak' }}</b>.</div>
+        <div v-if="r.level === 'mhs' && r.careers?.length" class="table-wrap" style="margin-bottom:20px"><table>
+            <thead><tr><th>#</th><th>Karier</th><th>Selaras</th><th>Prodi</th></tr></thead>
+            <tbody><tr v-for="c in r.careers" :key="c.id"><td>{{ c.rank }}</td><td><strong>{{ c.title }}</strong><small>KBJI {{ c.id }} · {{ c.holland }}</small></td><td>{{ pct(c.score) }}%</td><td><small>{{ (c.programs || []).map((p) => p.name + (p.score != null ? ' (' + pct(p.score) + '%)' : '')).join(', ') }}</small></td></tr></tbody>
+        </table></div>
 
         <!-- Prodi (SMA/SMK) dan prodi UMB -->
-        <template v-for="[key, title] in [['programs', 'Prodi'], ['umb_programs', 'Prodi UMB'], ['umb_s1_path', 'Jalur lanjut S1 UMB']]" :key="key">
+        <template v-for="[key, title] in [['programs', 'Prodi'], ['switch_programs', 'Pindah jurusan'], ['local_programs', 'Di kampus sendiri']]" :key="key">
             <div v-if="r[key]?.length" class="table-wrap" style="margin-bottom:20px"><table>
                 <thead><tr><th>#</th><th>{{ title }}</th><th>Selaras</th><th>Kampus</th><th>Karier utama</th></tr></thead>
                 <tbody><tr v-for="p in r[key]" :key="p.id">

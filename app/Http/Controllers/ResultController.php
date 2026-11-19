@@ -48,16 +48,9 @@ class ResultController extends Controller
         $session = $result->session;
         $this->ensureRecommendations($session, $result);
 
-        $umbProgram = null;
-        if ($session->level_at_test === 'mhs_umb') {
-            $o = $user->profile?->umbProgram;
-            $umbProgram = $o ? ['name' => $o->original_name, 'level' => $o->level] : null;
-        }
-
         return Inertia::render('Hasil', [
             'result' => $this->present($result),
             'recs' => $this->presenter->present($session),
-            'umbProgram' => $umbProgram,
             'favorites' => FavoriteController::mapFor($user),
             'total' => count(config('riasec.items')),
             'reportCategories' => \App\Models\ResultReport::CATEGORIES,
@@ -108,13 +101,21 @@ class ResultController extends Controller
         $pending = $recs->where('kind', 'program')->contains(fn ($r) => $r->campusPick?->status === 'pending_accreditation');
         // Hasil lama yang masih memuat prodi/profesi khusus agama (dibuat sebelum daftar kata diperbarui).
         // Hanya jenis yang memang disaring mesin, agar tidak dibuat ulang terus-menerus.
-        $religious = Settings::get('recommend.exclude_religious') && $recs->whereIn('kind', ['program', 'career_path'])->contains(function ($r) {
+        $religious = Settings::get('recommend.exclude_religious') && $recs->whereIn('kind', ['program', 'career_path', 'career', 'mhs_switch', 'mhs_local'])->contains(function ($r) {
             $names = array_merge([$r->reason['name'] ?? '', $r->reason['title'] ?? ''], array_column($r->reason['programs'] ?? [], 'name'));
 
             return (bool) preg_grep(config('arahdiri.recommend.religious_pattern'), array_filter($names));
         });
 
-        if ($recs->isEmpty() || $religious || ($pending && $this->campuses->hasAccreditationData())) {
+        // Dibuat dengan versi mesin lama → susun ulang agar detail dan tampilannya lengkap.
+        $outdated = $recs->contains(fn ($r) => $r->engine_version !== RecommendationEngine::VERSION);
+
+        // Mahasiswa mengubah jawaban "merasa salah jurusan?" → alur rekomendasinya ikut berubah.
+        $eval = $recs->firstWhere('kind', 'mhs_eval');
+        $answer = $session->user?->profile?->feels_mismatch;
+        $answerChanged = $eval && $answer !== null && (bool) ($eval->reason['feels_mismatch'] ?? false) !== (bool) $answer;
+
+        if ($recs->isEmpty() || $outdated || $answerChanged || $religious || ($pending && $this->campuses->hasAccreditationData())) {
             try {
                 $this->engine->generate($session, $result);
             } catch (\Throwable $e) {

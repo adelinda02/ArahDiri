@@ -10,13 +10,13 @@ class BerandaController extends Controller
 {
     public function __invoke(Request $request): Response
     {
-        $user = $request->user()->load('profile.umbProgram');
+        $user = $request->user()->load('profile.currentProgram.campus');
         $latest = $user->latestResult();
-        $umb = $user->profile?->umbProgram;
+        $cur = $user->profile?->currentProgram;
 
         return Inertia::render('Beranda', [
             'latest' => $latest ? ['holland_code' => $latest->holland_code, 'completed_at' => $latest->created_at?->toIso8601String()] : null,
-            'umbProgram' => $umb ? ['name' => $umb->original_name, 'level' => $umb->level] : null,
+            'currentProgram' => $cur ? ['name' => $cur->original_name, 'level' => $cur->level, 'campus' => $cur->campus?->name] : null,
         ]);
     }
 }

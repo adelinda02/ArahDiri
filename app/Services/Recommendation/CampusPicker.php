@@ -37,6 +37,41 @@ class CampusPicker
             ->limit($limit)->get()->map(fn ($r) => (array) $r)->all();
     }
 
+    /**
+     * Kampus yang membuka satu kelompok prodi menurut katalog PDDikti, tanpa syarat akreditasi.
+     * Dipakai bila data akreditasi BAN-PT belum ada: PTN/PTKN dulu, lalu nama kampus.
+     */
+    public function catalogCampuses(int $familyId, array $excludeCampusIds = [], int $limit = 4, ?int $onlyCampusId = null): array
+    {
+        return $this->eligible(false)
+            ->reorder()
+            ->where('po.program_family_id', $familyId)
+            ->when($excludeCampusIds, fn ($q) => $q->whereNotIn('c.id', $excludeCampusIds))
+            ->when($onlyCampusId, fn ($q) => $q->where('c.id', $onlyCampusId))
+            ->orderByRaw('case when c.ownership in (?, ?) then 0 else 1 end', self::STATE_OWNERSHIP)
+            ->orderByDesc('pa.rating_score')
+            ->orderBy('c.name')
+            ->limit($limit)->get()->map(fn ($r) => (array) $r)->all();
+    }
+
+    /** Ringkasan satu kampus untuk disimpan di rekomendasi (daftar kampus alternatif). */
+    public static function brief(array $row): array
+    {
+        return [
+            'campus_id' => (int) $row['campus_id'],
+            'offering_id' => (int) $row['offering_id'],
+            'name' => $row['campus_name'],
+            'pt_code' => $row['pt_code'] ?? null,
+            'city' => $row['city'] ?? null,
+            'province' => $row['province'] ?? null,
+            'ownership' => $row['ownership'] ?? null,
+            'website' => $row['website'] ?? null,
+            'program_rating' => ($row['p_score'] ?? 0) > 0 ? $row['p_rating'] : null,
+            'campus_rating' => ($row['c_score'] ?? 0) > 0 ? $row['c_rating'] : null,
+            'program_expires' => ! empty($row['p_expires']) ? substr((string) $row['p_expires'], 0, 10) : null,
+        ];
+    }
+
     /** @return array<int, true> id kelompok prodi yang punya minimal satu kampus memenuhi syarat */
     public function eligibleFamilyIds(): array
     {

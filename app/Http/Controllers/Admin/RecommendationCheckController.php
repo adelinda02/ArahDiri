@@ -36,13 +36,14 @@ class RecommendationCheckController extends Controller
         $input = [
             'jenjang' => array_key_exists($request->query('jenjang'), $levels) ? $request->query('jenjang') : User::LEVEL_SMA_SMK,
             'umb' => $request->integer('umb') ?: null,
+            'salah' => $request->boolean('salah'),
         ];
         foreach (Riasec::ORDER as $d) {
             $input[$d] = max(0, min(100, $request->integer($d, 50)));
         }
         $run = $request->boolean('jalankan');
         $umbOptions = $this->umbPrograms();
-        if ($input['jenjang'] === User::LEVEL_MHS_UMB && ! $umbOptions->contains('id', $input['umb'])) {
+        if ($input['jenjang'] === User::LEVEL_MHS && ! $umbOptions->contains('id', $input['umb'])) {
             $input['umb'] = $umbOptions->first()?->id;
         }
 
@@ -74,7 +75,7 @@ class RecommendationCheckController extends Controller
             $tag = 'sim'.Str::lower(Str::random(10));
             $user = User::forceCreate(['name' => 'Simulasi', 'username' => $tag, 'email' => $tag.'@simulasi.invalid', 'phone' => '0'.random_int(1000000000, 9999999999),
                 'password' => Str::random(40), 'level' => $in['jenjang'], 'role' => 'user']);
-            $user->profile()->create(['umb_program_offering_id' => $in['jenjang'] === User::LEVEL_MHS_UMB ? $in['umb'] : null]);
+            $user->profile()->create(['current_program_offering_id' => $in['jenjang'] === User::LEVEL_MHS ? $in['umb'] : null, 'feels_mismatch' => $in['salah']]);
             $session = TestSession::create(['user_id' => $user->id, 'level_at_test' => $in['jenjang'], 'status' => 'completed',
                 'instrument_version' => 'simulasi', 'current_item' => 50, 'started_at' => now(), 'completed_at' => now()]);
             $norm = collect(Riasec::ORDER)->mapWithKeys(fn ($d) => ['norm_'.$d => $in[$d] / 100])->all();
@@ -153,7 +154,7 @@ class RecommendationCheckController extends Controller
 
     private function recSummary(TestSession $s): array
     {
-        return DB::table('recommendations')->where('test_session_id', $s->id)->whereIn('kind', ['career_path', 'program', 'career', 'umb_eval', 'umb_program'])
+        return DB::table('recommendations')->where('test_session_id', $s->id)->whereIn('kind', ['career_path', 'program', 'career', 'mhs_eval', 'mhs_switch'])
             ->orderBy('kind')->orderBy('rank')->get(['kind', 'rank', 'score', 'reason'])
             ->map(function ($r) {
                 $reason = json_decode($r->reason, true) ?? [];

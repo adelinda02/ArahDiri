@@ -1,5 +1,5 @@
 <script setup>
-// Halaman daftar v14 (vLogin mode daftar). Jenjang: SMP, SMA/SMK, Mahasiswa UMB.
+// Halaman daftar v14 (vLogin mode daftar). Jenjang: SMP, SMA/SMK, Mahasiswa.
 import { Head, useForm } from '@inertiajs/vue3';
 import Go from '../../Components/Go.vue';
 import { VIEW_URL } from '../../lib/routes';
@@ -33,7 +33,7 @@ function submit() {
                 <label>Kata sandi<input v-model="form.password" class="login-input" type="password" name="password" required minlength="10" maxlength="128" autocomplete="new-password" placeholder="Minimal 10 karakter">
                     <span v-if="form.errors.password" class="field-error">{{ form.errors.password }}</span></label>
                 <label>Konfirmasi kata sandi<input v-model="form.password_confirmation" class="login-input" type="password" name="password_confirmation" required minlength="10" autocomplete="new-password"></label>
-                <p v-if="form.level === 'mhs_umb'" style="font-size:.9rem">Jenjang mahasiswa khusus untuk mahasiswa aktif Universitas Mercu Buana. Setelah daftar, kamu akan memilih prodi UMB-mu saat ini.</p>
+                <p v-if="form.level === 'mhs'" style="font-size:.9rem">Jenjang mahasiswa untuk mahasiswa aktif dari kampus mana pun. Setelah daftar, kamu akan memilih kampus dan prodi yang sedang kamu jalani.</p>
                 <p id="account-error" role="alert" style="color:#b3261e"></p>
                 <button class="btn btn-primary" type="submit" :disabled="form.processing">{{ form.processing ? 'Memproses…' : 'Daftar akun' }}</button>
             </form>

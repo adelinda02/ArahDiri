@@ -52,9 +52,12 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::post('/keluar', [LoginController::class, 'destroy'])->name('logout');
 
-    // Mahasiswa UMB: pilih prodi UMB sebelum memakai fitur lain.
-    Route::get('/mulai/prodi-umb', [OnboardingController::class, 'edit'])->name('onboarding');
-    Route::post('/mulai/prodi-umb', [OnboardingController::class, 'update']);
+    // Mahasiswa: pilih kampus dan prodi yang sedang dijalani sebelum memakai fitur lain.
+    Route::get('/mulai/prodi', [OnboardingController::class, 'edit'])->name('onboarding');
+    Route::post('/mulai/prodi', [OnboardingController::class, 'update']);
+    Route::get('/mulai/prodi/kampus', [OnboardingController::class, 'campuses'])->middleware('throttle:60,1')->name('onboarding.kampus');
+    Route::get('/mulai/prodi/kampus/{campus}', [OnboardingController::class, 'programs'])->whereNumber('campus')->middleware('throttle:60,1')->name('onboarding.prodi');
+    Route::redirect('/mulai/prodi-umb', '/mulai/prodi');
 
     Route::middleware('onboarded')->group(function () {
         Route::get('/beranda', BerandaController::class)->name('beranda');
