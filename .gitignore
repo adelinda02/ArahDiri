@@ -27,3 +27,6 @@ yarn-error.log
 /docs/v14-reference/
 /database/*.sqlite
 /storage/app/private/banpt/
+
+# Akun uji lokal untuk cek tampilan
+/.claude/test-accounts.txt
