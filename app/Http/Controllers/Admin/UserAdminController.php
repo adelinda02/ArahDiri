@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,7 +36,7 @@ class UserAdminController extends Controller
             ->latest('id')->paginate(30)->withQueryString()
             ->through(fn (User $u) => [
                 'id' => $u->id, 'name' => $u->name, 'username' => $u->username,
-                'email' => self::mask($u->email), 'level' => config('arahdiri.levels.'.$u->level),
+                'email' => self::mask($u->email), 'level' => config('arahdiri.levels.'.$u->level), 'level_key' => $u->level,
                 'joined' => $u->created_at, 'tests' => (int) $u->tests, 'last_test' => $u->last_test,
                 'active' => (bool) $u->is_active, 'temp' => $u->mustChangePassword(),
             ]);
@@ -77,6 +78,25 @@ class UserAdminController extends Controller
         AuditLog::record('user_temp_password', $request->user()->id, 'user', (string) $user->id); // kata sandinya tidak dicatat
 
         return back()->with('temp_password', ['username' => $user->username, 'password' => $plain]);
+    }
+
+    /**
+     * Ubah jenjang atas permintaan pemilik akun (jenjang dikunci di Edit Profil untuk pengguna biasa).
+     * Hasil tes lama tetap tersimpan dengan jenjang saat tes; rekomendasi jenjang baru muncul setelah tes ulang.
+     */
+    public function level(Request $request, User $user): RedirectResponse
+    {
+        abort_unless($user->role === 'user', 403);
+        $data = $request->validate(['level' => ['required', Rule::in(array_keys(config('arahdiri.levels')))]], [], ['level' => 'jenjang']);
+
+        if ($user->level === $data['level']) {
+            return back()->with('status', "Jenjang {$user->username} tidak berubah.");
+        }
+        $from = $user->level;
+        $user->forceFill(['level' => $data['level']])->save();
+        AuditLog::record('user_level_changed', $request->user()->id, 'user', (string) $user->id, ['dari' => $from, 'ke' => $data['level']]);
+
+        return back()->with('status', "Jenjang {$user->username} diubah ke ".config('arahdiri.levels.'.$data['level']).'. Hasil lama tetap tersimpan; ia perlu tes ulang untuk rekomendasi jenjang baru.');
     }
 
     /** a***@gmail.com — cukup untuk mengenali, tidak membuka alamat lengkap. */

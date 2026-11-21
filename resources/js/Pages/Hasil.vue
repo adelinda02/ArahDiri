@@ -205,10 +205,7 @@ function scrollToRec() { document.querySelector('#rekomendasi-ringkas-sec')?.scr
         <TabKarier v-else-if="tab === 'karir' && recs" :recs="recs" />
         <TabKampus v-else-if="tab === 'kampus' && recs" :recs="recs" />
 
-        <div v-if="recs" class="hasil-report-band">
-            <span>Hasil rekomendasinya terasa janggal atau tidak sesuai?</span>
-            <button type="button" class="v2-link" @click="reporting = true">Laporkan hasil tidak sesuai</button>
-        </div>
+        <p v-if="recs" class="hasil-report-link">Rekomendasinya terasa tidak cocok denganmu? <button type="button" @click="reporting = true">Beri tahu kami</button></p>
 
         <div id="cp"></div>
     </div>

@@ -42,6 +42,10 @@ class ProfileController extends Controller
     {
         $u = $request->user();
         $request->merge(['email' => mb_strtolower(trim((string) $request->input('email'))), 'phone' => User::normalizePhone($request->input('phone'))]);
+        // Jenjang dipilih saat mendaftar; hanya pengguna panel admin yang boleh mengubahnya di sini.
+        if (! $u->canEnterAdmin()) {
+            $request->merge(['level' => $u->level]);
+        }
         $data = $request->validate([
             'name' => ['required', 'string', 'min:2', 'max:80'],
             'email' => ['required', 'email', 'max:254', Rule::unique('users')->ignore($u->id)],

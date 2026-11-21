@@ -6,7 +6,7 @@ import BackBar from '../Components/BackBar.vue';
 import Go from '../Components/Go.vue';
 
 const props = defineProps({ code: String, top3: Array, targets: Array, activities: { type: Array, default: () => [] } });
-const NAMA = { R: 'Praktis', I: 'Peneliti', A: 'Kreatif', S: 'Penolong', E: 'Pemimpin', C: 'Penata' };
+const NAMA = { R: 'Realistis', I: 'Investigatif', A: 'Artistik', S: 'Sosial', E: 'Enterprising', C: 'Konvensional' };
 const CAT = { akademik: 'Kemampuan Akademik', softskill: 'Pengembangan Soft Skill', karier: 'Kesiapan Karier' };
 const level = computed(() => usePage().props.auth.user.level_label);
 const filter = ref('all');
@@ -35,7 +35,7 @@ const cats = [
 <template>
     <Head title="Rencana pengembangan" />
     <div class="wrap" style="padding-top:24px">
-        <BackBar />
+        <BackBar back />
         <div class="dev-guide-card">
             <div class="dev-guide-header">
                 <div class="dev-guide-header-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 20h10" /><path d="M10 20c5.5-2.5.8-6.4 3-10" /><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4.1 5.5.8z" /><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z" /></svg></div>

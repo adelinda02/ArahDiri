@@ -1,12 +1,13 @@
 <script setup>
 // Profil v14 (vProfil): kartu profil, kartu hasil RIASEC, Pusat Pengaturan Akun + modal-modalnya.
 import { computed, ref, onMounted } from 'vue';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import Go from '../Components/Go.vue';
 import { AVATARS } from '../lib/avatars';
+import { ADMIN_EMAIL } from '../lib/contact';
 
 const props = defineProps({ account: Object, result: Object, levels: Object, avatars: Array });
-const NAMA = { R: 'Praktis', I: 'Peneliti', A: 'Kreatif', S: 'Penolong', E: 'Pemimpin', C: 'Penata' };
+const NAMA = { R: 'Realistis', I: 'Investigatif', A: 'Artistik', S: 'Sosial', E: 'Enterprising', C: 'Konvensional' };
 const isAdmin = computed(() => usePage().props.auth.user?.is_admin);
 const top3 = computed(() => (props.result?.code ?? '').split(''));
 const modal = ref(null); // settings | edit | privacy | about | terms | logout | delete
@@ -16,12 +17,14 @@ function open(m) { modal.value = m; document.body.style.overflow = 'hidden'; }
 function close() { modal.value = null; document.body.style.overflow = ''; }
 // Masuk dengan kata sandi sementara dari admin → langsung buka Pengaturan Akun untuk menggantinya.
 onMounted(() => { if (usePage().props.auth.user?.must_change_password) open('settings'); });
-function toggleTheme() {
-    const next = isDark.value ? 'light' : 'dark';
+function setTheme(next) {
     document.documentElement.setAttribute('data-theme', next);
     try { localStorage.setItem('arahdiri-theme', next); } catch (e) { /* mode privat */ }
-    isDark.value = !isDark.value;
+    isDark.value = next === 'dark';
 }
+// Pengaturan: bagian mana yang sedang dibuka (null | 'pw' | 'others'). Wajib ganti sandi → langsung terbuka.
+const openSec = ref(usePage().props.auth.user?.must_change_password ? 'pw' : null);
+function toggleSec(s) { openSec.value = openSec.value === s ? null : s; }
 
 const edit = useForm({
     name: props.account.name, email: props.account.email, phone: props.account.phone, level: props.account.level,
@@ -30,7 +33,7 @@ const edit = useForm({
 const saveProfile = () => edit.put('/profil', { preserveScroll: true, onSuccess: close });
 
 const pw = useForm({ current_password: '', password: '', password_confirmation: '' });
-const savePassword = () => pw.put('/profil/kata-sandi', { preserveScroll: true, onSuccess: () => { pw.reset(); close(); } });
+const savePassword = () => pw.put('/profil/kata-sandi', { preserveScroll: true, onSuccess: () => { pw.reset(); openSec.value = null; close(); } });
 const strength = computed(() => {
     const v = pw.password;
     let s = 0;
@@ -43,7 +46,7 @@ const strength = computed(() => {
 const show = ref({});
 
 const others = useForm({ password: '' });
-const logoutOthers = () => others.post('/profil/keluar-semua', { preserveScroll: true, onSuccess: () => { others.reset(); close(); } });
+const logoutOthers = () => others.post('/profil/keluar-semua', { preserveScroll: true, onSuccess: () => { others.reset(); openSec.value = null; close(); } });
 const del = useForm({ password: '' });
 const deleteAccount = () => del.delete('/profil');
 const logout = () => router.post('/keluar');
@@ -57,10 +60,10 @@ const ICONS = {
     about: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
     terms: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>',
     logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+    history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
 };
 const MENU = [
     ['settings', 'Menu Pengaturan', 'Mode tampilan, ganti kata sandi, dan keluar dari semua perangkat.'],
-    ['edit', 'Menu Edit Profil', 'Ubah nama, kontak, jenjang, asal sekolah, dan karakter avatar.'],
     ['privacy', 'Menu Kebijakan Privasi', 'Data apa yang disimpan ArahDiri dan untuk apa.'],
     ['about', 'Menu Tentang Kami', 'Memuat informasi serta latar belakang dari aplikasi ArahDiri.'],
     ['terms', 'Menu Ketentuan Layanan', 'Berisi aturan dan syarat penggunaan aplikasi.'],
@@ -119,7 +122,7 @@ const MENU = [
         <section class="profile-options-section">
             <div class="profile-section-heading">
                 <h3 class="profile-section-title">Pusat Pengaturan Akun</h3>
-                <p class="profile-section-subtitle">Sesuaikan preferensi aplikasi, edit data profil, tinjau kebijakan privasi, informasi kami, serta ketentuan layanan ArahDiri.</p>
+                <p class="profile-section-subtitle">Sesuaikan preferensi aplikasi, lihat riwayat tes, tinjau kebijakan privasi, informasi kami, serta ketentuan layanan ArahDiri.</p>
             </div>
             <div class="profile-menu-grid">
                 <a v-if="isAdmin" href="/admin" class="profile-menu-item" style="text-decoration:none;color:inherit">
@@ -127,6 +130,11 @@ const MENU = [
                     <div class="profile-menu-text"><h4 class="profile-menu-name">Panel Admin</h4><p class="profile-menu-desc">Ringkasan, data hasil, akreditasi, katalog, dan konten.</p></div>
                     <div class="profile-menu-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6" /></svg></div>
                 </a>
+                <Link href="/riwayat" class="profile-menu-item" style="text-decoration:none;color:inherit">
+                    <div class="profile-menu-icon-box ic-history"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" v-html="ICONS.history"></svg></div>
+                    <div class="profile-menu-text"><h4 class="profile-menu-name">Menu Riwayat Tes</h4><p class="profile-menu-desc">Lihat dan buka kembali hasil tes sebelumnya.</p></div>
+                    <div class="profile-menu-arrow"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6" /></svg></div>
+                </Link>
                 <article v-for="m in MENU" :key="m[0]" class="profile-menu-item" :class="{ 'item-logout': m[0] === 'logout' }" role="button" tabindex="0" @click="open(m[0])" @keydown.enter="open(m[0])">
                     <div class="profile-menu-icon-box" :class="'ic-' + m[0]"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" v-html="ICONS[m[0]]"></svg></div>
                     <div class="profile-menu-text"><h4 class="profile-menu-name">{{ m[1] }}</h4><p class="profile-menu-desc">{{ m[2] }}</p></div>
@@ -151,42 +159,76 @@ const MENU = [
 
                     <!-- Pengaturan -->
                     <template v-if="modal === 'settings'">
-                        <div class="pmodal-body">
-                            <div class="pswitch-row">
-                                <div class="pswitch-info"><span class="pswitch-title">Mode Tampilan (Gelap / Terang)</span><span class="pswitch-desc">Aktifkan tema gelap untuk kenyamanan mata.</span></div>
-                                <button type="button" class="btn btn-outline" style="padding:6px 14px;font-size:.84rem" @click="toggleTheme">{{ isDark ? ' Ubah ke Terang' : ' Ubah ke Gelap' }}</button>
-                            </div>
-                            <div class="pform-divider"></div>
-                            <div class="pform-section-header"><div class="pform-section-title"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg><span>Ganti Kata Sandi</span></div></div>
-                            <p class="pform-hint" style="margin-top:-6px">Setelah diganti, perangkat lain yang sedang masuk otomatis keluar.</p>
-                            <form class="change-password-box" @submit.prevent="savePassword">
-                                <div v-for="f in [['current_password', 'Kata Sandi Saat Ini', 'current-password'], ['password', 'Kata Sandi Baru', 'new-password'], ['password_confirmation', 'Konfirmasi Kata Sandi Baru', 'new-password']]" :key="f[0]" class="pform-group">
-                                    <label class="pform-label" :for="'pw-' + f[0]">{{ f[1] }}</label>
-                                    <div class="password-input-wrap">
-                                        <input :id="'pw-' + f[0]" v-model="pw[f[0]]" :type="show[f[0]] ? 'text' : 'password'" class="pform-input" :autocomplete="f[2]" :placeholder="f[0] === 'password' ? 'Minimal 10 karakter baru' : ''">
-                                        <button type="button" class="pwd-eye-btn" aria-label="Lihat kata sandi" @click="show[f[0]] = !show[f[0]]"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" v-html="eye"></svg></button>
+                        <div class="pmodal-body pset">
+                            <!-- Tampilan -->
+                            <section class="pset-group">
+                                <h4 class="pset-label">Tampilan</h4>
+                                <div class="pset-card">
+                                    <div class="pset-row">
+                                        <div class="pset-info"><span class="pset-title">Mode tampilan</span><span class="pset-desc">Pilih tema yang paling nyaman di mata.</span></div>
+                                        <div class="pset-seg" role="radiogroup" aria-label="Mode tampilan">
+                                            <button type="button" role="radio" :aria-checked="!isDark" :class="{ on: !isDark }" @click="setTheme('light')">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>Terang
+                                            </button>
+                                            <button type="button" role="radio" :aria-checked="isDark" :class="{ on: isDark }" @click="setTheme('dark')">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>Gelap
+                                            </button>
+                                        </div>
                                     </div>
-                                    <template v-if="f[0] === 'password'">
-                                        <div class="pwd-strength-bar"><span class="pwd-strength-fill" :style="{ width: strength * 25 + '%' }"></span></div>
-                                        <div class="pwd-strength-hint">Kekuatan: {{ ['Masukkan minimal 10 karakter', 'Lemah', 'Cukup', 'Kuat', 'Sangat kuat'][strength] }}</div>
-                                    </template>
-                                    <span v-if="pw.errors[f[0]]" class="field-error">{{ pw.errors[f[0]] }}</span>
                                 </div>
-                                <div style="display:flex;justify-content:flex-end;margin-top:2px"><button type="submit" class="btn btn-outline" style="font-size:.85rem;padding:8px 16px;font-weight:700" :disabled="pw.processing"><span> Perbarui Kata Sandi</span></button></div>
-                            </form>
-                            <div class="pform-divider"></div>
-                            <div class="pform-section-header"><div class="pform-section-title"><span>Keluar dari semua perangkat lain</span></div></div>
-                            <form class="change-password-box" @submit.prevent="logoutOthers">
-                                <div class="pform-group"><label class="pform-label" for="pw-others">Kata sandi saat ini</label><input id="pw-others" v-model="others.password" type="password" class="pform-input" autocomplete="current-password"><span v-if="others.errors.password" class="field-error">{{ others.errors.password }}</span></div>
-                                <div style="display:flex;justify-content:flex-end"><button type="submit" class="btn btn-outline" style="font-size:.85rem;padding:8px 16px" :disabled="others.processing">Keluarkan perangkat lain</button></div>
-                            </form>
-                            <div class="pform-divider"></div>
-                            <div class="pswitch-row">
-                                <div class="pswitch-info"><span class="pswitch-title">Hapus akun</span><span class="pswitch-desc">Menghapus akun beserta seluruh hasil tes secara permanen.</span></div>
-                                <button type="button" class="btn btn-outline" style="padding:6px 14px;font-size:.84rem" @click="modal = 'delete'">Hapus akun…</button>
-                            </div>
+                            </section>
+
+                            <!-- Keamanan -->
+                            <section class="pset-group">
+                                <h4 class="pset-label">Keamanan</h4>
+                                <div class="pset-card">
+                                    <div class="pset-row">
+                                        <span class="pset-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg></span>
+                                        <div class="pset-info"><span class="pset-title">Kata sandi</span><span class="pset-desc pset-dots" aria-hidden="true">• • • • • • • •</span></div>
+                                        <button type="button" class="pset-btn" :aria-expanded="openSec === 'pw'" aria-controls="pset-pw" @click="toggleSec('pw')">{{ openSec === 'pw' ? 'Batal' : 'Ubah' }}</button>
+                                    </div>
+                                    <form v-if="openSec === 'pw'" id="pset-pw" class="pset-panel" @submit.prevent="savePassword">
+                                        <p class="pform-hint">Setelah diganti, perangkat lain yang sedang masuk otomatis keluar.</p>
+                                        <div v-for="f in [['current_password', 'Kata Sandi Saat Ini', 'current-password'], ['password', 'Kata Sandi Baru', 'new-password'], ['password_confirmation', 'Konfirmasi Kata Sandi Baru', 'new-password']]" :key="f[0]" class="pform-group">
+                                            <label class="pform-label" :for="'pw-' + f[0]">{{ f[1] }}</label>
+                                            <div class="password-input-wrap">
+                                                <input :id="'pw-' + f[0]" v-model="pw[f[0]]" :type="show[f[0]] ? 'text' : 'password'" class="pform-input" :autocomplete="f[2]" :placeholder="f[0] === 'password' ? 'Minimal 10 karakter baru' : ''">
+                                                <button type="button" class="pwd-eye-btn" aria-label="Lihat kata sandi" @click="show[f[0]] = !show[f[0]]"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" v-html="eye"></svg></button>
+                                            </div>
+                                            <template v-if="f[0] === 'password'">
+                                                <div class="pwd-strength-bar"><span class="pwd-strength-fill" :style="{ width: strength * 25 + '%' }"></span></div>
+                                                <div class="pwd-strength-hint">Kekuatan: {{ ['Masukkan minimal 10 karakter', 'Lemah', 'Cukup', 'Kuat', 'Sangat kuat'][strength] }}</div>
+                                            </template>
+                                            <span v-if="pw.errors[f[0]]" class="field-error">{{ pw.errors[f[0]] }}</span>
+                                        </div>
+                                        <div class="pset-actions"><button type="submit" class="btn btn-primary pset-submit" :disabled="pw.processing">Perbarui Kata Sandi</button></div>
+                                    </form>
+
+                                    <div class="pset-row">
+                                        <span class="pset-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" /></svg></span>
+                                        <div class="pset-info"><span class="pset-title">Keluar dari perangkat lain</span><span class="pset-desc">Akhiri sesi di HP atau komputer lain, perangkat ini tetap masuk.</span></div>
+                                        <button type="button" class="pset-btn" :aria-expanded="openSec === 'others'" aria-controls="pset-others" @click="toggleSec('others')">{{ openSec === 'others' ? 'Batal' : 'Keluarkan' }}</button>
+                                    </div>
+                                    <form v-if="openSec === 'others'" id="pset-others" class="pset-panel" @submit.prevent="logoutOthers">
+                                        <div class="pform-group"><label class="pform-label" for="pw-others">Masukkan kata sandi saat ini untuk konfirmasi</label><input id="pw-others" v-model="others.password" type="password" class="pform-input" autocomplete="current-password"><span v-if="others.errors.password" class="field-error">{{ others.errors.password }}</span></div>
+                                        <div class="pset-actions"><button type="submit" class="btn btn-primary pset-submit" :disabled="others.processing">Keluarkan Perangkat Lain</button></div>
+                                    </form>
+                                </div>
+                            </section>
+
+                            <!-- Zona berbahaya -->
+                            <section class="pset-group">
+                                <h4 class="pset-label pset-label--danger">Zona berbahaya</h4>
+                                <div class="pset-card pset-danger">
+                                    <div class="pset-row">
+                                        <span class="pset-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /></svg></span>
+                                        <div class="pset-info"><span class="pset-title">Hapus akun</span><span class="pset-desc">Akun dan seluruh hasil tes dihapus permanen.</span></div>
+                                        <button type="button" class="pset-btn pset-btn--danger" @click="modal = 'delete'">Hapus akun…</button>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
-                        <div class="pmodal-footer"><button type="button" class="btn btn-primary" @click="close">Tutup</button></div>
+                        <div class="pmodal-footer"><button type="button" class="btn btn-outline" @click="close">Tutup</button></div>
                     </template>
 
                     <!-- Edit profil -->
@@ -214,8 +256,8 @@ const MENU = [
                             </div>
                             <div class="pform-group">
                                 <label class="pform-label" for="prof-level">Jenjang Pendidikan</label>
-                                <select id="prof-level" v-model="edit.level" class="pform-input"><option v-for="(l, k) in levels" :key="k" :value="k">{{ l }}</option></select>
-                                <p v-if="edit.level !== account.level" class="pform-hint">Rekomendasi mengikuti jenjang saat tes. Kerjakan tes ulang setelah mengganti jenjang.</p>
+                                <select id="prof-level" v-model="edit.level" class="pform-input" :disabled="!isAdmin"><option v-for="(l, k) in levels" :key="k" :value="k">{{ l }}</option></select>
+                                <p v-if="isAdmin && edit.level !== account.level" class="pform-hint">Rekomendasi mengikuti jenjang saat tes. Kerjakan tes ulang setelah mengganti jenjang.</p>
                             </div>
                             <div class="pmodal-footer" style="padding:0;border:0">
                                 <button type="button" class="btn btn-outline" @click="close">Batal</button>
@@ -257,6 +299,12 @@ const MENU = [
                             <p>Tes 50 pernyataan berbasis model minat Holland (RIASEC): Realistic, Investigative, Artistic, Social, Enterprising, dan Conventional. Profil minat pekerjaan dari O*NET 31.0 dipadankan dengan jabatan KBJI 2026.</p>
                             <h4>Data</h4>
                             <p>Katalog perguruan tinggi dan prodi PDDikti, akreditasi Direktori BAN-PT, dan Spektrum Keahlian SMK. <Go href="/referensi" class="v2-link">Lihat sumber lengkap ↗</Go></p>
+                            <h4>Kontak admin</h4>
+                            <p>Untuk mengubah jenjang pendidikan, jika tidak bisa mereset kata sandi lewat email, atau melaporkan masalah, hubungi admin ArahDiri lewat email. Sebutkan nama pengguna, email, atau nomor HP akunmu.</p>
+                            <a class="about-contact" :href="'mailto:' + ADMIN_EMAIL + '?subject=' + encodeURIComponent('Bantuan akun ArahDiri')">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></svg>
+                                <span>{{ ADMIN_EMAIL }}</span>
+                            </a>
                         </div>
                         <div class="pmodal-footer"><button type="button" class="btn btn-primary" @click="close">Tutup</button></div>
                     </template>
@@ -283,7 +331,7 @@ const MENU = [
                         </div>
                         <div class="pmodal-footer">
                             <button type="button" class="btn btn-outline" @click="close">Batal</button>
-                            <button type="button" class="btn" style="background:#3c75c6;color:#ffffff;border-color:#3c75c6" @click="logout">Ya, Keluar dari Akun</button>
+                            <button type="button" class="btn" style="background:#1D70B8;color:#ffffff;border-color:#1D70B8" @click="logout">Ya, Keluar dari Akun</button>
                         </div>
                     </template>
 

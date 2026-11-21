@@ -14,7 +14,7 @@ const remove = (kind, id) => router.post('/favorit', { kind, target_id: id }, { 
 <template>
     <Head title="Pilihan tersimpan" />
     <div class="wrap" style="padding-top:24px">
-        <BackBar />
+        <BackBar back />
         <section class="star-catalog">
             <h1>Pilihan tersimpan</h1>
             <template v-for="s in sections" :key="s[0]">

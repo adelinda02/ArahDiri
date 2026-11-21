@@ -1,9 +1,10 @@
 <script setup>
 // Tab "Jurusan": chip pilihan + detail lengkap (alasan, peluang karier, kampus pilihan, langkah).
 import { computed, ref, watch } from 'vue';
-import { fitLabel, neutralFit, accLine, campusPlace, campusShort, ownershipLabel, siteUrl, zoneText, tanggal } from '../../lib/format';
-import { DIM, becauseText } from '../../lib/riasec';
+import { fitLabel, neutralFit, accLine, campusPlace, campusShort, ownershipLabel, siteUrl, zoneText, tanggal, KIND_ICON } from '../../lib/format';
+import { DIM, ICON as DIM_ICON, becauseText } from '../../lib/riasec';
 import Go from '../Go.vue';
+import LineIcon from './LineIcon.vue';
 
 const props = defineProps({ recs: { type: Object, required: true }, start: { type: Number, default: 0 } });
 
@@ -22,12 +23,26 @@ const row = ref(null);
 const scroll = (dir) => row.value?.scrollBy({ left: (dir < 0 ? -1 : 1) * Math.max(180, row.value.clientWidth * 0.65), behavior: 'smooth' });
 const SMK_VIA = { career: 'Lulusannya bekerja di bidang profesi ini', program: 'Sejalan dengan prodi lanjutannya' };
 
-const hollandDims = (h) => (h ? h.split('').slice(0, 3).map((t) => DIM[t]).filter(Boolean) : []);
 const fit = (s) => fitLabel(s);
 
 // Mahasiswa: jurusan sekarang dan jawaban "merasa salah jurusan?".
 const now = computed(() => props.recs.current);
 const mFit = (s) => (now.value?.feels_mismatch ? fitLabel(s) : neutralFit(s));
+
+// Detail prodi (hanya tampilan): dimensi RIASEC beserta ikonnya, dan ikon garis untuk tiap bagian.
+const hollandDimsIcon = (h) => (h ? h.split('').slice(0, 3).filter((t) => DIM[t]).map((t) => ({ key: t, ...DIM[t], icon: DIM_ICON[t] })) : []);
+const UI_ICON = {
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/><path d="m12 12 7-7"/><path d="M16 5h3v3"/>',
+    field: '<path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/>',
+    rank: '<path d="m3 8 4 3 5-6 5 6 4-3-2 11H5L3 8Z"/>',
+    level: '<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/>',
+    code: '<path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="8" cy="8" r="1.5"/>',
+    info: '<circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+    pin: '<path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12Z"/><circle cx="12" cy="9" r="2.5"/>',
+    badge: '<path d="M12 3 14.5 5l3.2-.2.8 3.1 2.6 1.9-1.2 3 1.2 3-2.6 1.9-.8 3.1-3.2-.2L12 23l-2.5-2.4-3.2.2-.8-3.1L2.9 16l1.2-3-1.2-3 2.6-1.9.8-3.1 3.2.2Z" transform="scale(.9) translate(1.3 0)"/><path d="m9 12 2 2 4-4"/>',
+    check: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+    chevron: '<path d="m6 15 6-6 6 6"/>',
+};
 </script>
 
 <template>
@@ -157,60 +172,109 @@ const mFit = (s) => (now.value?.feels_mismatch ? fitLabel(s) : neutralFit(s));
 
         <!-- ================= Prodi (SMA/SMK, pindah jurusan, kampus sendiri) ================= -->
         <template v-else>
-            <div class="hasil-mockup-card rec-hero">
-                <div class="rec-hero-band">
-                    <span v-if="cur.data.field" class="rec-pill">{{ cur.data.field }}</span>
-                    <span class="rec-pill">Pilihan #{{ cur.data.rank }}</span>
-                </div>
-                <div class="hasil-card-header" style="padding:18px 20px 16px 20px">
-                    <h2 class="hasil-card-title rec-title">{{ cur.data.name }}</h2>
-                    <span class="fit-badge" :class="'fit-' + fit(cur.data.score).tone">{{ fit(cur.data.score).label }} · {{ fit(cur.data.score).pct }}%</span>
-                    <div class="hasil-meta-row rec-meta">
-                        <div class="hasil-meta-item"><span>Jenjang: <b>{{ cur.data.level }}</b></span></div>
-                        <div class="hasil-meta-item"><span>Kode minat prodi: <b>{{ cur.data.holland || '-' }}</b></span></div>
-                        <div v-if="cur.data.offerings_count" class="hasil-meta-item"><span>Dibuka di: <b>{{ cur.data.offerings_count }} kampus</b></span></div>
+            <!-- Ringkasan utama: nama, kecocokan, jenjang, kode minat, jumlah kampus -->
+            <section class="rd-hero">
+                <div class="rd-hero-main">
+                    <div class="rd-pills">
+                        <span v-if="cur.data.field" class="rd-pill"><LineIcon :paths="UI_ICON.field" />{{ cur.data.field }}</span>
+                        <span class="rd-pill"><LineIcon :paths="UI_ICON.rank" />Pilihan #{{ cur.data.rank }}</span>
+                    </div>
+                    <div class="rd-title-row">
+                        <span class="rd-title-icon"><LineIcon :paths="KIND_ICON.majors" /></span>
+                        <div class="rd-title-text">
+                            <h2>{{ cur.data.name }}</h2>
+                            <span class="fit-badge rd-fit" :class="'fit-' + fit(cur.data.score).tone"><LineIcon :paths="UI_ICON.check" />{{ fit(cur.data.score).label }} · {{ fit(cur.data.score).pct }}%</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+                <dl class="rd-stats">
+                    <div class="rd-stat">
+                        <span class="rd-stat-icon"><LineIcon :paths="UI_ICON.level" /></span>
+                        <div><dt>Jenjang</dt><dd>{{ cur.data.level }}</dd></div>
+                    </div>
+                    <div class="rd-stat">
+                        <span class="rd-stat-icon"><LineIcon :paths="UI_ICON.code" /></span>
+                        <div><dt>Kode minat prodi</dt><dd>{{ cur.data.holland || '-' }}</dd></div>
+                    </div>
+                    <div v-if="cur.data.offerings_count" class="rd-stat">
+                        <span class="rd-stat-icon"><LineIcon :paths="KIND_ICON.campuses" /></span>
+                        <div><dt>Dibuka di</dt><dd>{{ cur.data.offerings_count }} kampus</dd></div>
+                    </div>
+                </dl>
+            </section>
 
-            <details class="acc-card rec-acc" open>
-                <summary><span class="acc-title-wrap"><span class="acc-title">Kenapa cocok untukmu</span></span><span class="acc-chevron">›</span></summary>
-                <div class="acc-body">
-                    <p v-if="cur.data.because?.length">Minat <b>{{ becauseText(cur.data.because) }}</b>-mu sama dengan minat utama prodi ini.</p>
-                    <p v-else>Profil minat prodi ini paling dekat dengan profil minatmu secara keseluruhan.</p>
-                    <ul v-if="hollandDims(cur.data.holland).length" class="rx-dim-list">
-                        <li v-for="d in hollandDims(cur.data.holland)" :key="d.name"><b>{{ d.name }}</b> · {{ d.alias }}<br><span>{{ d.desc }}</span></li>
-                    </ul>
-                    <p v-if="cur.data.subjects?.length" style="margin-top:10px">Mapel pendukung saat seleksi SNBP<template v-if="recs.snbp?.source"> ({{ recs.snbp.source }})</template>: <b>{{ cur.data.subjects.join(', ') }}</b>.</p>
-                </div>
-            </details>
-
-            <details class="acc-card rec-acc" open>
-                <summary><span class="acc-title-wrap"><span class="acc-title">Peluang karier lulusan</span></span><span class="acc-chevron">›</span></summary>
-                <div class="acc-body">
-                    <ul v-if="cur.data.careers?.length" class="rx-career-list">
-                        <li v-for="c in cur.data.careers" :key="c.code">
-                            <div class="rx-career-top"><b>{{ c.title }}</b><span v-if="c.score != null" class="fit-badge" :class="'fit-' + fit(c.score).tone" :title="'Kecocokan dengan minatmu'">{{ fit(c.score).pct }}%</span></div>
-                            <p v-if="c.description">{{ c.description }}</p>
-                            <small>KBJI {{ c.code }}<template v-if="zoneText(c.zone_min, c.zone_max)"> · {{ zoneText(c.zone_min, c.zone_max) }}</template> · <Go :href="'/karier/' + c.code">katalog karier →</Go></small>
+            <!-- Kenapa cocok -->
+            <details class="rd-acc" open>
+                <summary>
+                    <span class="rd-acc-title"><LineIcon :paths="UI_ICON.target" />Kenapa cocok untukmu</span>
+                    <span class="rd-acc-chevron"><LineIcon :paths="UI_ICON.chevron" /></span>
+                </summary>
+                <div class="rd-acc-body">
+                    <p v-if="cur.data.because?.length" class="rd-lead">Minat <b>{{ becauseText(cur.data.because) }}</b>-mu sama dengan minat utama prodi ini.</p>
+                    <p v-else class="rd-lead">Profil minat prodi ini paling dekat dengan profil minatmu secara keseluruhan.</p>
+                    <ul v-if="hollandDimsIcon(cur.data.holland).length" class="rd-dims">
+                        <li v-for="d in hollandDimsIcon(cur.data.holland)" :key="d.key">
+                            <span class="rd-dim-icon"><LineIcon :paths="d.icon" /></span>
+                            <div class="rd-dim-text"><b>{{ d.name }}</b> · <span class="rd-dim-alias">{{ d.alias }}</span><p>{{ d.desc }}</p></div>
                         </li>
                     </ul>
-                    <p v-else>Belum ada jabatan KBJI yang terhubung dengan prodi ini.</p>
+                    <p v-if="cur.data.subjects?.length" class="rd-note">
+                        <LineIcon :paths="UI_ICON.info" />
+                        <span class="rd-note-text">Mapel pendukung saat seleksi SNBP<template v-if="recs.snbp?.source"> ({{ recs.snbp.source }})</template>: <span v-for="s in cur.data.subjects" :key="s" class="rd-chip">{{ s }}</span></span>
+                    </p>
                 </div>
             </details>
 
-            <details class="acc-card rec-acc" open>
-                <summary><span class="acc-title-wrap"><span class="acc-title">Kampus pilihan</span></span><span class="acc-chevron">›</span></summary>
-                <div class="acc-body">
-                    <div v-if="cur.data.campus.name" class="rx-campus-main">
-                        <p><b>{{ cur.data.campus.name }}</b> · {{ ownershipLabel(cur.data.campus) }}<template v-if="campusPlace(cur.data.campus)"> · {{ campusPlace(cur.data.campus) }}</template></p>
-                        <p>Akreditasi prodi: {{ accLine(cur.data.campus.program_accreditation) }}</p>
-                        <p>Akreditasi kampus: {{ accLine(cur.data.campus.campus_accreditation) }}</p>
-                        <p v-if="cur.data.campus.status !== 'ready'" class="rec-warn-soft">Akreditasi belum diverifikasi dari Direktori BAN-PT.</p>
-                        <p v-if="cur.data.campus.program_accreditation?.expiring_soon" class="rec-warn">Akreditasi prodi segera berakhir; cek perpanjangannya di situs BAN-PT.</p>
-                        <p v-if="cur.data.campus.website"><a :href="siteUrl(cur.data.campus.website)" target="_blank" rel="noopener">Situs resmi kampus ↗</a></p>
+            <!-- Peluang karier -->
+            <details class="rd-acc" open>
+                <summary>
+                    <span class="rd-acc-title"><LineIcon :paths="KIND_ICON.careers" />Peluang karier lulusan</span>
+                    <span class="rd-acc-chevron"><LineIcon :paths="UI_ICON.chevron" /></span>
+                </summary>
+                <div class="rd-acc-body">
+                    <ul v-if="cur.data.careers?.length" class="rd-careers">
+                        <li v-for="c in cur.data.careers" :key="c.code" class="rd-career">
+                            <span class="rd-career-icon"><LineIcon :paths="KIND_ICON.careers" /></span>
+                            <div class="rd-career-main">
+                                <b>{{ c.title }}</b>
+                                <p v-if="c.description">{{ c.description }}</p>
+                            </div>
+                            <div class="rd-career-meta">
+                                <span>KBJI {{ c.code }}</span>
+                                <small v-if="zoneText(c.zone_min, c.zone_max)">{{ zoneText(c.zone_min, c.zone_max) }}</small>
+                                <Go :href="'/karier/' + c.code" class="rd-link">Katalog karier →</Go>
+                            </div>
+                            <span v-if="c.score != null" class="fit-badge rd-career-fit" :class="'fit-' + fit(c.score).tone" title="Kecocokan dengan minatmu">{{ fit(c.score).pct }}%</span>
+                        </li>
+                    </ul>
+                    <p v-else class="rd-lead">Belum ada jabatan KBJI yang terhubung dengan prodi ini.</p>
+                </div>
+            </details>
+
+            <!-- Kampus pilihan -->
+            <details class="rd-acc" open>
+                <summary>
+                    <span class="rd-acc-title"><LineIcon :paths="KIND_ICON.campuses" />Kampus pilihan</span>
+                    <span class="rd-acc-chevron"><LineIcon :paths="UI_ICON.chevron" /></span>
+                </summary>
+                <div class="rd-acc-body">
+                    <div v-if="cur.data.campus.name" class="rd-campus">
+                        <div class="rd-campus-id">
+                            <span class="rd-title-icon rd-campus-icon"><LineIcon :paths="KIND_ICON.majors" /></span>
+                            <div>
+                                <h3>{{ cur.data.campus.name }}</h3>
+                                <p class="rd-campus-place"><LineIcon :paths="UI_ICON.pin" />{{ ownershipLabel(cur.data.campus) }}<template v-if="campusPlace(cur.data.campus)"> · {{ campusPlace(cur.data.campus) }}</template></p>
+                                <p v-if="cur.data.campus.website" class="rd-campus-site"><a :href="siteUrl(cur.data.campus.website)" target="_blank" rel="noopener">Situs resmi kampus ↗</a></p>
+                            </div>
+                        </div>
+                        <div class="rd-campus-acc">
+                            <p><LineIcon :paths="UI_ICON.badge" /><span><b>Akreditasi prodi:</b> {{ accLine(cur.data.campus.program_accreditation) }}</span></p>
+                            <p><LineIcon :paths="UI_ICON.badge" /><span><b>Akreditasi kampus:</b> {{ accLine(cur.data.campus.campus_accreditation) }}</span></p>
+                            <p v-if="cur.data.campus.status !== 'ready'" class="rec-warn-soft">Akreditasi belum diverifikasi dari Direktori BAN-PT.</p>
+                            <p v-if="cur.data.campus.program_accreditation?.expiring_soon" class="rec-warn">Akreditasi prodi segera berakhir; cek perpanjangannya di situs BAN-PT.</p>
+                        </div>
                     </div>
-                    <p v-else>Belum ada kampus yang memenuhi syarat untuk prodi ini.</p>
+                    <p v-else class="rd-lead">Belum ada kampus yang memenuhi syarat untuk prodi ini.</p>
                     <template v-if="cur.data.alt_campuses?.length">
                         <p class="rx-steps-title">Kampus lain yang juga membuka prodi ini</p>
                         <ul class="rx-alt-campus">
@@ -220,7 +284,7 @@ const mFit = (s) => (now.value?.feels_mismatch ? fitLabel(s) : neutralFit(s));
                             </li>
                         </ul>
                     </template>
-                    <p style="margin-top:10px"><Go :href="'/jurusan/' + cur.data.id">Lihat semua {{ cur.data.offerings_count || '' }} kampus yang membuka prodi ini →</Go></p>
+                    <Go :href="'/jurusan/' + cur.data.id" class="rd-all-btn">Lihat semua {{ cur.data.offerings_count || '' }} kampus yang membuka prodi ini <span aria-hidden="true">→</span></Go>
                 </div>
             </details>
 

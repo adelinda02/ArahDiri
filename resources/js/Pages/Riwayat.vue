@@ -2,10 +2,11 @@
 // Riwayat tes v14 (vRiwayat): setiap sesi tes tersimpan apa adanya.
 import { Head, router } from '@inertiajs/vue3';
 import Go from '../Components/Go.vue';
+import BackBar from '../Components/BackBar.vue';
 
 const props = defineProps({ items: { type: Array, required: true }, max: { type: Object, required: true } });
 const ORDER = ['R', 'I', 'A', 'S', 'E', 'C'];
-const NAMA = { R: 'Praktis', I: 'Peneliti', A: 'Kreatif', S: 'Penolong', E: 'Pemimpin', C: 'Penata' };
+const NAMA = { R: 'Realistis', I: 'Investigatif', A: 'Artistik', S: 'Sosial', E: 'Enterprising', C: 'Konvensional' };
 const when = (iso) => new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB';
 const pct = (x) => Math.round(x * 100);
 
@@ -21,6 +22,7 @@ const trash = '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2
 <template>
     <Head title="Riwayat Tes" />
     <div class="wrap">
+        <BackBar back fallback="/profil" />
         <div class="view-head">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
                 <div>
@@ -28,7 +30,7 @@ const trash = '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2
                     <h2 class="h2" style="margin-bottom:4px">Riwayat Aktivitas &amp; Sesi Tes</h2>
                     <p class="lead" style="margin-bottom:0">Semua hasil tes minat tersimpan aman di akunmu, lengkap dengan rekomendasi saat itu.</p>
                 </div>
-                <button v-if="items.length" type="button" class="btn" style="font-size:0.84rem;padding:8px 16px;color:#3c75c6;border:1.5px solid #b7ccea;background:#f4f7fc;display:inline-flex;align-items:center;gap:6px;border-radius:10px;font-weight:700" title="Hapus seluruh riwayat tes yang tersimpan" @click="hapusSemua">
+                <button v-if="items.length" type="button" class="btn" style="font-size:0.84rem;padding:8px 16px;color:#1D70B8;border:1.5px solid #CFE2F2;background:#F4F8FC;display:inline-flex;align-items:center;gap:6px;border-radius:10px;font-weight:700" title="Hapus seluruh riwayat tes yang tersimpan" @click="hapusSemua">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" v-html="trash"></svg>
                     <span>Hapus Semua Riwayat</span>
                 </button>

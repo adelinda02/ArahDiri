@@ -53,6 +53,12 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
         RateLimiter::for('register', fn (Request $request) => Limit::perHour(10)->by($request->ip()));
+        // Lupa kata sandi: batasi permintaan kode per IP; salah kode per email diatur di PasswordResetController.
+        RateLimiter::for('password-reset', fn (Request $request) => [
+            Limit::perMinute(3)->by('pr:'.$request->ip()),
+            Limit::perHour(10)->by('pr-h:'.$request->ip()),
+        ]);
+        RateLimiter::for('password-reset-verify', fn (Request $request) => Limit::perMinute(10)->by('prv:'.$request->ip()));
         RateLimiter::for('search', fn (Request $request) => Limit::perMinute(90)->by($request->ip()));
     }
 }

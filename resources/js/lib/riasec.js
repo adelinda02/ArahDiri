@@ -3,12 +3,12 @@
 export const ORDER = ['R', 'I', 'A', 'S', 'E', 'C'];
 
 export const KARTU = {
-    R: { name: 'Realistic', label: 'Realistic (R)', img: '/img/kartu_6_tipe/R_Realistic.png', desc: 'Tipe Realistis ini suka hal-hal praktis dan bekerja langsung dengan alat, mesin, atau kegiatan lapangan. Lebih suka aksi nyata daripada sekadar teori. Cocok jadi insinyur, teknisi, arsitek, dll.' },
-    I: { name: 'Investigative', label: 'Investigative (I)', img: '/img/kartu_6_tipe/I_Investigative.png', desc: 'Orang bertipe Investigatif ini punya rasa ingin tahu tinggi dan gemar menganalisis hal rumit. Dia suka riset, data, dan logika ilmiah untuk memecahkan masalah. Cocok jadi peneliti, data analyst, dll.' },
-    A: { name: 'Artistic', label: 'Artistic (A)', img: '/img/kartu_6_tipe/A_Artistic.png', desc: 'Kepribadian Artistik ini penuh kreativitas, imajinasi, dan suka mengekspresikan ide lewat karya orisinal. Gak suka aturan kaku. Cocok jadi desainer, kreator konten, penulis, dll.' },
-    S: { name: 'Social', label: 'Social (S)', img: '/img/kartu_6_tipe/S_Social.png', desc: 'Kepribadian Sosial ini sukanya membantu. Biasanya dia gak suka kerja pakai mesin. Dia suka eksplorasi jadi guru, konselor, dan lain-lain, deh!' },
+    R: { name: 'Realistis', label: 'Realistis (R)', img: '/img/kartu_6_tipe/R_Realistic.png', desc: 'Tipe Realistis ini suka hal-hal praktis dan bekerja langsung dengan alat, mesin, atau kegiatan lapangan. Lebih suka aksi nyata daripada sekadar teori. Cocok jadi insinyur, teknisi, arsitek, dll.' },
+    I: { name: 'Investigatif', label: 'Investigatif (I)', img: '/img/kartu_6_tipe/I_Investigative.png', desc: 'Orang bertipe Investigatif ini punya rasa ingin tahu tinggi dan gemar menganalisis hal rumit. Dia suka riset, data, dan logika ilmiah untuk memecahkan masalah. Cocok jadi peneliti, data analyst, dll.' },
+    A: { name: 'Artistik', label: 'Artistik (A)', img: '/img/kartu_6_tipe/A_Artistic.png', desc: 'Kepribadian Artistik ini penuh kreativitas, imajinasi, dan suka mengekspresikan ide lewat karya orisinal. Gak suka aturan kaku. Cocok jadi desainer, kreator konten, penulis, dll.' },
+    S: { name: 'Sosial', label: 'Sosial (S)', img: '/img/kartu_6_tipe/S_Social.png', desc: 'Kepribadian Sosial ini sukanya membantu. Biasanya dia gak suka kerja pakai mesin. Dia suka eksplorasi jadi guru, konselor, dan lain-lain, deh!' },
     E: { name: 'Enterprising', label: 'Enterprising (E)', img: '/img/kartu_6_tipe/E_Enterprising.png', desc: 'Kepribadian berjiwa wirausaha ini jago bicara dan cocok jadi pemimpin. Cocok kerja bareng orang lain, apalagi eksplorasi di bidang politik atau penjualan!' },
-    C: { name: 'Conventional', label: 'Conventional (C)', img: '/img/kartu_6_tipe/C_Conventional.png', desc: 'Orang yang berjiwa Konvensional ini sangat teliti dan teratur. Dia suka kerja dengan angka dan kata-kata daripada berinteraksi dengan orang lain. Cocok jadi akuntan, pekerja administrasi, dll.' },
+    C: { name: 'Konvensional', label: 'Konvensional (C)', img: '/img/kartu_6_tipe/C_Conventional.png', desc: 'Orang yang berjiwa Konvensional ini sangat teliti dan teratur. Dia suka kerja dengan angka dan kata-kata daripada berinteraksi dengan orang lain. Cocok jadi akuntan, pekerja administrasi, dll.' },
 };
 
 export const DIM = {

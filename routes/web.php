@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\ContentController;
 use App\Http\Controllers\Admin\RecommendationCheckController;
 use App\Http\Controllers\Admin\UserAdminController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\PasswordResetController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\CatalogController;
@@ -47,6 +48,14 @@ Route::middleware('guest')->group(function () {
     Route::post('/masuk', [LoginController::class, 'store'])->middleware('throttle:login');
     Route::get('/daftar', [RegisterController::class, 'create'])->name('daftar');
     Route::post('/daftar', [RegisterController::class, 'store'])->middleware('throttle:register');
+
+    // Lupa kata sandi: email → kode 6 digit → kata sandi baru.
+    Route::get('/lupa-sandi', [PasswordResetController::class, 'create'])->name('lupa-sandi');
+    Route::post('/lupa-sandi', [PasswordResetController::class, 'send'])->middleware('throttle:password-reset');
+    Route::get('/lupa-sandi/kode', [PasswordResetController::class, 'code'])->name('lupa-sandi.kode');
+    Route::post('/lupa-sandi/kode', [PasswordResetController::class, 'verify'])->middleware('throttle:password-reset-verify');
+    Route::get('/lupa-sandi/baru', [PasswordResetController::class, 'edit'])->name('lupa-sandi.baru');
+    Route::post('/lupa-sandi/baru', [PasswordResetController::class, 'update'])->middleware('throttle:password-reset-verify');
 });
 
 Route::middleware('auth')->group(function () {
@@ -120,6 +129,7 @@ Route::middleware(['auth', 'role:editor,admin,owner'])->prefix('admin')->name('a
         Route::get('/pengguna', [UserAdminController::class, 'index'])->name('pengguna');
         Route::post('/pengguna/{user}/status', [UserAdminController::class, 'toggle'])->name('pengguna.status');
         Route::post('/pengguna/{user}/sandi-sementara', [UserAdminController::class, 'temporaryPassword'])->middleware('throttle:20,1')->name('pengguna.sandi');
+        Route::post('/pengguna/{user}/jenjang', [UserAdminController::class, 'level'])->middleware('throttle:30,1')->name('pengguna.jenjang');
         Route::get('/akun', [AdminController::class, 'accounts'])->name('akun');
         Route::post('/akun', [AdminController::class, 'promote'])->name('akun.tambah');
         Route::post('/akun/{user}', [AdminController::class, 'setAdmin'])->name('akun.ubah');

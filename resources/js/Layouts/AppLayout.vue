@@ -15,7 +15,7 @@ const view = computed(() => page.props.view ?? '');
 const home = computed(() => homeUrl(user.value));
 
 // Navigasi bawah disembunyikan di halaman masuk/daftar/awal (sama dengan v14).
-const hideBottomNav = computed(() => ['login', 'daftar', 'landing', 'onboarding'].includes(view.value));
+const hideBottomNav = computed(() => ['login', 'daftar', 'lupa-sandi', 'landing', 'onboarding'].includes(view.value));
 const isAuthView = computed(() => ['login', 'daftar'].includes(view.value));
 const exploreViews = ['jurusan', 'kampus', 'karier', 'cari', 'smk', 'referensi'];
 
@@ -110,7 +110,7 @@ onMounted(() => {
     </main>
 
     <footer class="wrap foot">
-        <p>ArahDiri adalah alat bantu awal, bukan pengganti guru BK, konselor, atau orang tua. Daftar kampus menggunakan Katalog Nasional PT &amp; Prodi, akreditasi dari direktori BAN-PT, dan profesi dari KBJI 2026. Syarat, kuota, dan jadwal berubah setiap tahun, jadi selalu cek situs resmi sebelum mendaftar. <Go href="/referensi" class="v2-link">Panduan &amp; referensi</Go> · <Go href="/privasi" class="v2-link">Kebijakan privasi</Go></p>
+        <p>ArahDiri 2026 by Alya, Yuni, Linda · <Go href="/referensi" class="v2-link">Panduan &amp; referensi</Go> · <Go href="/privasi" class="v2-link">Kebijakan privasi</Go></p>
     </footer>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 

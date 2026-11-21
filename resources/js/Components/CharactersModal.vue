@@ -21,8 +21,8 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
                 <div id="characters-modal-content">
                     <div style="padding: clamp(16px, 2.5vw, 24px);">
                         <div style="margin-bottom: 20px; text-align: center;">
-                            <h2 id="char-modal-title" style="margin: 0; font-size: 1.6rem; font-weight: 800; color: #1E2538;">6 Karakter Tipe Minat RIASEC</h2>
-                            <p style="margin: 6px 0 0 0; color: #2858b7; font-size: 0.95rem;">Pelajari seluruh karakter kepribadian untuk memahami potensi unik dan gaya eksplorasimu.</p>
+                            <h2 id="char-modal-title" style="margin: 0; font-size: 1.6rem; font-weight: 800; color: #0B3C5D;">6 Karakter Tipe Minat RIASEC</h2>
+                            <p style="margin: 6px 0 0 0; color: #1D70B8; font-size: 0.95rem;">Pelajari seluruh karakter kepribadian untuk memahami potensi unik dan gaya eksplorasimu.</p>
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
                             <div v-for="t in ORDER" :key="t" class="bakat-card-item" :class="{ 'is-top-bakat': top3.includes(t) }">
@@ -30,7 +30,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
                                     <div style="display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px">
                                         <div class="bakat-badge-pill"><span>{{ KARTU[t].label }}</span></div>
                                         <div style="display:flex;align-items:center;gap:6px">
-                                            <span v-if="top3.includes(t)" style="background:#295abb;color:#ffffff;font-size:0.75rem;font-weight:750;padding:4px 10px;border-radius:999px">Bakat #{{ top3.indexOf(t) + 1 }}</span>
+                                            <span v-if="top3.includes(t)" style="background:#1D70B8;color:#ffffff;font-size:0.75rem;font-weight:750;padding:4px 10px;border-radius:999px">Bakat #{{ top3.indexOf(t) + 1 }}</span>
                                             <span class="bakat-pct-badge" style="padding:4px 10px;font-size:0.82rem">{{ pct(t) }}%</span>
                                         </div>
                                     </div>

@@ -22,10 +22,10 @@ const labels = ORDER.map((t, i) => {
 
 <template>
     <svg viewBox="0 0 380 290" role="img" :aria-label="`Grafik radar 6 dimensi RIASEC: ${code}`" style="width:100%;max-width:320px;height:auto;display:block;margin:0 auto">
-        <polygon v-for="(g, k) in grids" :key="'g' + k" :points="g" fill="none" stroke="#CBD5E1" stroke-width="1.2" />
-        <line v-for="(s, k) in spokes" :key="'s' + k" :x1="cx" :y1="cy" :x2="s[0]" :y2="s[1]" stroke="#CBD5E1" stroke-width="1" />
-        <polygon :points="vertices.map((p) => p.join(',')).join(' ')" fill="rgba(14, 165, 233, 0.16)" stroke="#0284C7" stroke-width="2.5" stroke-linejoin="round" />
-        <circle v-for="(p, k) in vertices" :key="'c' + k" :cx="p[0]" :cy="p[1]" r="4" fill="#0284C7" stroke="#ffffff" stroke-width="1.5" />
-        <text v-for="l in labels" :key="l.text" :x="l.x" :y="l.y" :text-anchor="l.anchor" font-size="11.5" font-weight="700" fill="#2654af" font-family="Plus Jakarta Sans, system-ui, sans-serif">{{ l.text }}</text>
+        <polygon v-for="(g, k) in grids" :key="'g' + k" :points="g" fill="none" stroke="#CFE2F2" stroke-width="1.2" />
+        <line v-for="(s, k) in spokes" :key="'s' + k" :x1="cx" :y1="cy" :x2="s[0]" :y2="s[1]" stroke="#CFE2F2" stroke-width="1" />
+        <polygon :points="vertices.map((p) => p.join(',')).join(' ')" fill="rgba(90, 169, 230, 0.22)" stroke="#1D70B8" stroke-width="2.5" stroke-linejoin="round" />
+        <circle v-for="(p, k) in vertices" :key="'c' + k" :cx="p[0]" :cy="p[1]" r="4" fill="#1D70B8" stroke="#ffffff" stroke-width="1.5" />
+        <text v-for="l in labels" :key="l.text" :x="l.x" :y="l.y" :text-anchor="l.anchor" font-size="11.5" font-weight="700" fill="#0B3C5D" font-family="Plus Jakarta Sans, system-ui, sans-serif">{{ l.text }}</text>
     </svg>
 </template>
