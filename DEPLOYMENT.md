@@ -145,7 +145,7 @@ Tool `release-it` tersedia dari `package.json` root sebagai development dependen
 
 ```sh
 npm ci
-npm run release -- --increment=patch
+npm run release -- patch
 ```
 
 Ganti `patch` dengan `minor` atau `major`. `release-it` membuat commit versi dan tag `vMAJOR.MINOR.PATCH`, lalu mendorong branch dan tag ke `origin`; tag memulai workflow deploy. Pastikan working tree bersih dan perubahan sudah tersedia di `main` sebelum menjalankan rilis. Jangan membuat tag release manual untuk versi yang sama.
