@@ -10,7 +10,7 @@
     "requireCommits": true,
     "tagName": "v${version}",
     "commit": true,
-    "commitMessage": "Release ${version}",
+    "commitMessage": "chore: release ${version}",
     "push": true
   }
 }

@@ -7,7 +7,7 @@ services:
       APP_ENV: production
       APP_DEBUG: "false"
     ports:
-      - "127.0.0.1:8080:80"
+      - "0.0.0.0:8080:80"
     depends_on:
       mysql:
         condition: service_healthy
@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
     init: true
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://127.0.0.1/up"]
+      test: ["CMD", "curl", "--fail", "--silent", "http://0.0.0.0/up"]
       interval: 30s
       timeout: 5s
       start_period: 30s
