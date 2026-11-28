@@ -141,14 +141,24 @@ Workflow mengasumsikan file `/opt/arahdiri/.env` dan `/opt/arahdiri/.env.mysql`,
 
 ## Buat versi dengan npm
 
-Tool `release-it` tersedia dari `package.json` root sebagai development dependency. Aplikasi tidak dipublikasikan ke npm. Commit seluruh perubahan yang akan dirilis, lalu pilih tingkat versi dari branch `main`:
+Tool `release-it` tersedia dari `package.json` root sebagai development dependency. Aplikasi tidak dipublikasikan ke npm. `.release-it.json` mensyaratkan branch `ci-*` (untuk uji deploy) dengan upstream yang sudah diset, working tree bersih, dan minimal satu commit.
 
 ```sh
 npm ci
 npm run release -- patch
 ```
 
-Ganti `patch` dengan `minor` atau `major`. `release-it` membuat commit versi dan tag `vMAJOR.MINOR.PATCH`, lalu mendorong branch dan tag ke `origin`; tag memulai workflow deploy. Pastikan working tree bersih dan perubahan sudah tersedia di `main` sebelum menjalankan rilis. Jangan membuat tag release manual untuk versi yang sama.
+Ganti `patch` dengan `minor` atau `major`. Bentuk positional `npm run release -- patch` dipakai karena sebagian versi npm membaca `--increment` sebagai opsi npm sendiri.
+
+`release-it` menaikkan versi di `package.json` dan `package-lock.json`, membuat commit `Release x.y.z`, membuat tag `vMAJOR.MINOR.PATCH`, lalu mendorong branch dan tag ke `origin`. Tag memulai workflow deploy; commit versi harus ikut terkirim agar isi repo cocok dengan tag.
+
+Branch `ci-*` wajib punya upstream sekali saja:
+
+```sh
+git push -u origin ci-deploy
+```
+
+Jangan membuat tag release manual untuk versi yang sama. Bila rilis gagal setelah tag dibuat, hapus tag lokal dan remote sebelum mengulang, dan pastikan commit versi sudah terdorong.
 
 ## Deploy awal dan katalog
 
