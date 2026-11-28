@@ -3,9 +3,6 @@ services:
     image: ${APP_IMAGE:?Set APP_IMAGE}:${APP_VERSION:?Set APP_VERSION}
     env_file:
       - .env
-    environment:
-      # APP_ENV: production
-      APP_DEBUG: "false"
     ports:
       - "0.0.0.0:8080:80"
     depends_on:
@@ -28,9 +25,6 @@ services:
     image: ${APP_IMAGE:?Set APP_IMAGE}:${APP_VERSION:?Set APP_VERSION}
     env_file:
       - .env
-    environment:
-      # APP_ENV: production
-      APP_DEBUG: "false"
     command: ["php", "artisan", "schedule:work"]
     depends_on:
       mysql:
