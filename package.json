@@ -1,16 +1,20 @@
 {
     "$schema": "https://json.schemastore.org/package.json",
+    "name": "arahdiri",
+    "version": "0.0.3",
     "private": true,
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "release": "release-it"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^3.11.0",
         "@vitejs/plugin-vue": "^6.0.10",
         "concurrently": "^10.0.7",
         "laravel-vite-plugin": "^3.2.1",
+        "release-it": "18.1.2",
         "vite": "^8.3.8",
         "vue": "^3.5.45"
     }

@@ -1,0 +1,62 @@
+services:
+  app:
+    image: ${APP_IMAGE:?Set APP_IMAGE}:${APP_VERSION:?Set APP_VERSION}
+    env_file:
+      - .env
+    ports:
+      - "0.0.0.0:8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - app_storage:/var/www/html/storage
+    networks:
+      - backend
+    restart: unless-stopped
+    init: true
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://0.0.0.0/up"]
+      interval: 30s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+
+  scheduler:
+    image: ${APP_IMAGE:?Set APP_IMAGE}:${APP_VERSION:?Set APP_VERSION}
+    env_file:
+      - .env
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - app_storage:/var/www/html/storage
+    networks:
+      - backend
+    restart: unless-stopped
+    init: true
+    profiles: ["scheduler"]
+
+  mysql:
+    image: mysql:8.4.13
+    env_file:
+      - .env.mysql
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  app_storage:
+  mysql_data:
+
+networks:
+  backend:
+    name: arahdiri-backend
